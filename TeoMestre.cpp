@@ -5,14 +5,14 @@
 using namespace std;
 
 void choice(float a, float b, float d){
-    float logoritmo = log2(a)/log2(b); //logb de a
-    cout<<"O(n^";
-    if (d>logoritmo)
-      cout<<d<<")\n";
-    else if (d==logoritmo)
-      cout<<d<<"log(n))\n";
-    else
-      cout<<"log"<<b<<"("<<a<<"))\n";
+  float logoritmo = log2(a)/log2(b); //logb de a
+  cout<<"O(n^";
+  if (d>logoritmo)
+    cout<<d<<")\n";
+  else if (d==logoritmo)
+    cout<<d<<"log(n))\n";
+  else
+    cout<<"log"<<b<<"("<<a<<"))\n";
 }
 
 int main(){
@@ -27,6 +27,7 @@ int main(){
       cin>>b;
       cout << "D: ";
       cin>>d;
+      
       choice(a,b,d);
     }
   }
