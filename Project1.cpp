@@ -3,7 +3,7 @@
 /*
  - Criar Grafo - Vertices dados na primeira linha
  - Cada Vertice com o seu id e dps a nota esperada
- - Cada um terá tambem a sua lista de antecessores (?)
+ - Cada um terá tambem a sua lista de antecessores (?)  ------------ predecessores?
  
  - No input
  - A medida que se da a nota esperada, cria-se os vertices
@@ -60,6 +60,46 @@ void parse()
     //printf("%d",vertices[i]);
   }
 }
+
+class Vertex{
+  private:
+    int _id;
+    int _parentId;
+    int _grade;
+    list<Vertex> _connections;   // antecessores ou predecessores
+
+  public:
+    Vertex(int id, int parentId, int grade){
+      _id = id;
+      _parentId = parentId;
+      _grade = grade;
+    }
+
+    int getGrade(){
+      return _grade;
+    }
+
+    void addConnection(Vertex connection){
+      _connections.push_back(connection);
+    }
+};
+
+class Graph{
+  private:
+    Vertex *_vertexes;
+
+  public:
+    Graph(){
+      _vertexes = NULL;
+    }
+
+  void createGraph(){
+    /* _vertexes = new Vertex[vertices];
+    for(int i = 0; i < edges; i++){
+      //criar as conexões através da função addConnection da class vertex
+    } */
+  }
+};
 
 int main()
 {
