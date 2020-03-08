@@ -34,28 +34,35 @@
 using namespace std;
 
 //GLOBAL VARIABLES
-list<int>* vertices; //a.k.a alunos inscritos
-int* edges;  //a.k.a as conexões
+int *vertices; //a.k.a alunos inscritos
+int *edges;    //a.k.a as conexões, n utilizado agr
 
-void parse(){
-  int num_vert=0, num_edges=0;
-  scanf("%d, %d",&num_vert, &num_edges);
-  
-  if (num_vert<2){
-      printf("Minimum of students are 2.");
-      exit(1);
+void parse()
+{
+  int num_vert = 0, num_edges = 0;
+  scanf("%d, %d", &num_vert, &num_edges); //1 linha do input
+
+  if (num_vert < 2)
+  {
+    printf("Minimum of students are 2.");
+    exit(1);
   }
-  else if (num_edges<1){
-      printf("Minimum connections equals 1.");
-      exit(1);
+  else if (num_edges < 1)
+  {
+    printf("Minimum connections are 1.");
+    exit(1);
   }
 
-  vertices = new list<int>[num_vert];
-  //edges = new int<num_edges>;
-  //printf("%d\n",num_vert);
+  vertices = new int[num_vert];
+  for (int i = 0; i < num_vert; i++)
+  {
+    scanf("%d", &vertices[i]);
+    //printf("%d",vertices[i]);
+  }
 }
 
-int main(){
+int main()
+{
   parse();
   return 0;
 }
