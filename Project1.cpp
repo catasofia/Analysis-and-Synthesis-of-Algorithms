@@ -25,3 +25,37 @@
 
 
 */
+
+#include <stdio.h>
+#include <stdlib.h>
+#include <string>
+#include <list>
+
+using namespace std;
+
+//GLOBAL VARIABLES
+list<int>* vertices; //a.k.a alunos inscritos
+int* edges;  //a.k.a as conexões
+
+void parse(){
+  int num_vert=0, num_edges=0;
+  scanf("%d, %d",&num_vert, &num_edges);
+  
+  if (num_vert<2){
+      printf("Minimum of students are 2.");
+      exit(1);
+  }
+  else if (num_edges<1){
+      printf("Minimum connections equals 1.");
+      exit(1);
+  }
+
+  vertices = new list<int>[num_vert];
+  //edges = new int<num_edges>;
+  //printf("%d\n",num_vert);
+}
+
+int main(){
+  parse();
+  return 0;
+}
