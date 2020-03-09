@@ -2,6 +2,11 @@
 #include <stdlib.h>
 #include <string>
 #include <list>
+#include <iterator>
+#include <algorithm>
+#include <iostream>
+#include <memory>
+#include <stack>
 
 using namespace std;
 
@@ -15,6 +20,7 @@ class Vertex
 private:
   int _parentId;
   int _grade;
+  list<Vertex *> _connections;
 
 public:
   Vertex() {}
@@ -33,20 +39,28 @@ public:
   {
     _grade = newGrade;
   }
+
+  void addConnections(Vertex *v){
+    _connections.push_back(v);
+    list<Vertex *>::iterator it;
+    for (it = _connections.begin(); it != _connections.end(); ++it) {
+      printf("grade: %d ", (*it)->getGrade());
+    }
+  }
 };
 
 class Graph
 {
 private:
   Vertex *_vertexes;
-  list<Vertex> *_connections;
+  
 
 public:
   Graph() {}
   Graph(int vertexes)
   {
     _vertexes = new Vertex[vertexes];
-    _connections = new list<Vertex>[vertexes];
+    //_connections = new list<Vertex>[vertexes];
   }
 
   int getGrade(int num)
@@ -57,10 +71,20 @@ public:
   void newVert(int id)
   {
     int grade = 0;
-    if (scanf("%d", &grade) != 0)
+    if (scanf("%d", &grade) != 1)
       printf("ERRO!\n");
     _vertexes[id].setGrade(grade);
   }
+
+  Vertex getVertex(int id){
+    return _vertexes[id];
+  }
+
+  void addConnection(int id, int idConnection){
+    _vertexes[id].addConnections(&_vertexes[idConnection]);
+    //this->getVertex(id).addConnections(&(this->getVertex(idConnection)));
+  }
+
 };
 
 /* Global Variable */
@@ -72,8 +96,8 @@ Graph *_g;
 void parse()
 {
   int num_vert = 0, num_edges = 0;
-  if (scanf("%d, %d", &num_vert, &num_edges) != 0)
-    printf("ERRO\n"); //1 linha do input
+  if (scanf("%d, %d", &num_vert, &num_edges) != 2)
+    fprintf(stderr, "Scanf error\n"); //1 linha do input
 
   if (num_vert < 2)
   {
@@ -88,10 +112,20 @@ void parse()
 
   _g = new Graph(num_vert);
 
-  for (int i = 0; i < num_vert; i++)
+  for (int i = 1; i <= num_vert; i++)
   {
     _g->newVert(i);
     printf("%d\n", _g->getGrade(i));
+  }
+
+  int id = 0;
+  int idConnection = 0;
+  for(int i = 1; i <= num_edges; i++){
+    if(scanf("%d %d", &id, &idConnection) != 2)
+      fprintf(stderr, "Error");  
+    _g->addConnection(id, idConnection);
+
+
   }
 }
 
