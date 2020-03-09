@@ -5,14 +5,68 @@
 
 using namespace std;
 
-//GLOBAL VARIABLES
-int *vertices; //a.k.a alunos inscritos
-int *edges;    //a.k.a as conexões, n utilizado agr
+#define WHITE 0
+#define BLACK 1
+#define DEBUG 1
+
+/* Classes */
+class Vertex{
+  private:
+    int _parentId;
+    int _grade;
+
+  public:
+    Vertex(){
+    }
+    Vertex(int grade){
+      _grade = grade;
+    }
+
+    int getGrade(){
+      return _grade;
+    }
+
+    void setGrade(int newGrade){
+      _grade = newGrade;
+    }
+};
+
+class Graph{
+  private:
+    Vertex *_vertexes;
+    list<Vertex>* _connections;
+    
+  public:
+    Graph(){}
+    Graph(int vertexes){
+      _vertexes = new Vertex[vertexes];
+      _connections = new list<Vertex>[vertexes];
+    }
+
+    int getMax(int num){
+      return _vertexes[num].getGrade();
+    }
+
+    void newVert(int id){
+      int grade=0;
+      if (scanf("%d",&grade)!=0) printf("ERRO!\n");
+      _vertexes[id].setGrade(grade);
+    }
+
+
+};
+
+/* Global Variable */
+
+Graph *_g;
+
+
+/* Functions */
 
 void parse()
 {
   int num_vert = 0, num_edges = 0;
-  scanf("%d, %d", &num_vert, &num_edges); //1 linha do input
+  if (scanf("%d, %d", &num_vert, &num_edges)!=0) printf("ERRO\n"); //1 linha do input
 
   if (num_vert < 2)
   {
@@ -25,53 +79,14 @@ void parse()
     exit(1);
   }
 
-  vertices = new int[num_vert];
+  _g = new Graph(num_vert);
+
   for (int i = 0; i < num_vert; i++)
   {
-    scanf("%d", &vertices[i]);
-    //printf("%d",vertices[i]);
+    _g->newVert(i);
+    printf("%d\n",_g->getMax(i));
   }
 }
-
-class Vertex{
-  private:
-    int _id;
-    int _parentId;
-    int _grade;
-    list<Vertex> _connections;   // antecessores ou predecessores
-
-  public:
-    Vertex(int id, int parentId, int grade){
-      _id = id;
-      _parentId = parentId;
-      _grade = grade;
-    }
-
-    int getGrade(){
-      return _grade;
-    }
-
-    void addConnection(Vertex connection){
-      _connections.push_back(connection);
-    }
-};
-
-class Graph{
-  private:
-    Vertex *_vertexes;
-
-  public:
-    Graph(){
-      _vertexes = NULL;
-    }
-
-  void createGraph(){
-    /* _vertexes = new Vertex[vertices];
-    for(int i = 0; i < edges; i++){
-      //criar as conexões através da função addConnection da class vertex
-    } */
-  }
-};
 
 int main()
 {
