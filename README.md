@@ -3,6 +3,14 @@ Analysis and Synthesis of Algorithms 2019/2020
 
 Rumo ao 20 :muscle:
 
+# Ja feito
+
+ - Input (1ºLinha e Vertices - Arestas Falta)
+ - Graph class - Falta arestas adj.
+ - Vertices class - Tempos de descoberta e fecho, cores (Falta)
+ - 
+
+
 # Ideias
 
 Project 1
