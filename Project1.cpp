@@ -84,7 +84,7 @@ public:
     _vertexes[id].setGrade(grade);
   }
 
-  Vertex* getVertex(int id)
+  Vertex *getVertex(int id)
   {
     return &_vertexes[id];
   }
@@ -103,6 +103,7 @@ public:
 /* Global Variable */
 
 Graph *_g;
+list<int> *path;
 
 /* Functions */
 
@@ -143,9 +144,8 @@ void parseCommandLine()
 
 void max(Vertex *a, Vertex *b)
 {
-  if (a->getGrade() > b->getGrade()) 
+  if (a->getGrade() > b->getGrade())
     b->setGrade(a->getGrade());
-  
 }
 
 void DFSUtil(int v, bool visited[])
@@ -156,8 +156,25 @@ void DFSUtil(int v, bool visited[])
   {
     if (!visited[adjVertex->getId()])
       DFSUtil(adjVertex->getId(), visited);
-    max(adjVertex, vertex);
   }
+  path->push_front(v);
+  path->pop_back();
+}
+
+void DFSUtil_u(int v, bool visited[])
+{
+  visited[v] = true;
+  Vertex *vertex = _g->getVertex(v);
+  for (unsigned int i = (v+1); i < path->size(); i++)
+  {
+    bool found = (find(vertex->getAdjacents().begin(), vertex->getAdjacents().end(), i) 
+        != vertex->getAdjacents().end());
+
+    if (!visited[i] && |found)
+      DFSUtil_u(i, visited);
+    max(_g->getVertex(i),vertex);
+  }
+  path->remove(v);
 }
 
 void DFS()
@@ -167,7 +184,24 @@ void DFS()
     visited[i] = false;
 
   for (int i = 0; i < _g->getNumVectors(); i++)
-    if (!visited[i]) DFSUtil(i, visited);
+    if (!visited[i])
+      DFSUtil(i, visited);
+
+  for (int i = 0; i < _g->getNumVectors(); i++)
+  {
+    visited[i] = false;
+  }
+
+  for (int i : *path)
+    if (!visited[i])
+      DFSUtil_u(i, visited);
+}
+
+void findPath()
+{
+  path = new list<int>(_g->getNumVectors());
+  //cout<<_g->getNumVectors()<<"\n";
+  DFS();
 }
 
 void output()
@@ -181,7 +215,8 @@ int main()
 {
   parseCommandLine();
 
-  DFS();
+  //DFS();
+  findPath();
 
   output();
   return 0;
