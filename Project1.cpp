@@ -151,12 +151,12 @@ void max(Vertex *a, Vertex *b)
 void DFSUtil(int v, bool visited[])
 {
   visited[v] = true;
-  Vertex *ver = _g->getVertex(v);
-  for (Vertex *vere : ver->getAdjacents())
+  Vertex *vertex = _g->getVertex(v);
+  for (Vertex *adjVertex : vertex->getAdjacents())
   {
-    if (!visited[vere->getId()])
-      DFSUtil(vere->getId(), visited);
-    max(vere, ver);
+    if (!visited[adjVertex->getId()])
+      DFSUtil(adjVertex->getId(), visited);
+    max(adjVertex, vertex);
   }
 }
 
