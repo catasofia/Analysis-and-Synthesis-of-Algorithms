@@ -12,9 +12,7 @@ inputdir=$1
 outputdir=$2
 
 #Scrpit
-if [ ! -d "tecnicofs-*" ]; then
-	make all | grep !""
-fi
+make all | grep ""
 
 mkdir -p $2
 
@@ -27,7 +25,9 @@ do
 	outFile="$auxFile.out"
 	./p1Exe <$inputFile >$outFile
 	diff $outFile ${outFile/"$outputdir"/"outputTests/"}
+	
 done
 
-#make clean | grep !""
+make clean | grep !""
+echo All tests done!
 exit 0

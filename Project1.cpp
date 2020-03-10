@@ -84,7 +84,7 @@ public:
     _vertexes[id].setGrade(grade);
   }
 
-  Vertex *getVertex(int id)
+  Vertex* getVertex(int id)
   {
     return &_vertexes[id];
   }
@@ -143,8 +143,9 @@ void parseCommandLine()
 
 void max(Vertex *a, Vertex *b)
 {
-  if (a->getGrade() > b->getGrade())
+  if (a->getGrade() > b->getGrade()) 
     b->setGrade(a->getGrade());
+  
 }
 
 void DFSUtil(int v, bool visited[])
@@ -166,7 +167,7 @@ void DFS()
     visited[i] = false;
 
   for (int i = 0; i < _g->getNumVectors(); i++)
-    DFSUtil(i, visited);
+    if (!visited[i]) DFSUtil(i, visited);
 }
 
 void output()
