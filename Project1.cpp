@@ -18,21 +18,21 @@ using namespace std;
 class Vertex
 {
 private:
-  int _parentId;
+  int _Id;
   int _grade;
   list<Vertex *> _connections;
 
 public:
   Vertex() {}
 
-  Vertex(int grade)
-  {
-    _grade = grade;
-  }
-
   int getGrade()
   {
     return _grade;
+  }
+
+  int getId()
+  {
+    return _Id;
   }
 
   void setGrade(int newGrade)
@@ -40,27 +40,34 @@ public:
     _grade = newGrade;
   }
 
-  void addConnections(Vertex *v){
+  void setId(int id)
+  {
+    _Id = id;
+  }
+
+  void addConnections(Vertex *v)
+  {
     _connections.push_back(v);
-    list<Vertex *>::iterator it;
-    for (it = _connections.begin(); it != _connections.end(); ++it) {
-      printf("grade: %d ", (*it)->getGrade());
-    }
+  }
+
+  list<Vertex *> getAdjacents()
+  {
+    return _connections;
   }
 };
 
 class Graph
 {
 private:
+  int _numVertexes;
   Vertex *_vertexes;
-  
 
 public:
   Graph() {}
   Graph(int vertexes)
   {
     _vertexes = new Vertex[vertexes];
-    //_connections = new list<Vertex>[vertexes];
+    _numVertexes = vertexes;
   }
 
   int getGrade(int num)
@@ -73,18 +80,24 @@ public:
     int grade = 0;
     if (scanf("%d", &grade) != 1)
       printf("ERRO!\n");
+    _vertexes[id].setId(id);
     _vertexes[id].setGrade(grade);
   }
 
-  Vertex getVertex(int id){
-    return _vertexes[id];
+  Vertex *getVertex(int id)
+  {
+    return &_vertexes[id];
   }
 
-  void addConnection(int id, int idConnection){
+  int getNumVectors()
+  {
+    return _numVertexes;
+  }
+
+  void addConnection(int id, int idConnection)
+  {
     _vertexes[id].addConnections(&_vertexes[idConnection]);
-    //this->getVertex(id).addConnections(&(this->getVertex(idConnection)));
   }
-
 };
 
 /* Global Variable */
@@ -93,10 +106,10 @@ Graph *_g;
 
 /* Functions */
 
-void parse()
+void parseCommandLine()
 {
   int num_vert = 0, num_edges = 0;
-  if (scanf("%d, %d", &num_vert, &num_edges) != 2)
+  if (scanf("%d,%d", &num_vert, &num_edges) != 2)
     fprintf(stderr, "Scanf error\n"); //1 linha do input
 
   if (num_vert < 2)
@@ -114,23 +127,61 @@ void parse()
 
   for (int i = 1; i <= num_vert; i++)
   {
-    _g->newVert(i);
-    printf("%d\n", _g->getGrade(i));
+    _g->newVert(i - 1);
+    //printf("%d\n", _g->getGrade(i));
   }
 
   int id = 0;
   int idConnection = 0;
-  for(int i = 1; i <= num_edges; i++){
-    if(scanf("%d %d", &id, &idConnection) != 2)
-      fprintf(stderr, "Error");  
-    _g->addConnection(id, idConnection);
-
-
+  for (int i = 1; i <= num_edges; i++)
+  {
+    if (scanf("%d %d", &id, &idConnection) != 2)
+      fprintf(stderr, "Error");
+    _g->addConnection(id - 1, idConnection - 1);
   }
+}
+
+void max(Vertex *a, Vertex *b)
+{
+  if (a->getGrade() > b->getGrade())
+    b->setGrade(a->getGrade());
+}
+
+void DFSUtil(int v, bool visited[])
+{
+  visited[v] = true;
+  Vertex *ver = _g->getVertex(v);
+  for (Vertex *vere : ver->getAdjacents())
+  {
+    if (!visited[vere->getId()])
+      DFSUtil(vere->getId(), visited);
+    max(vere, ver);
+  }
+}
+
+void DFS()
+{
+  bool *visited = new bool[_g->getNumVectors()];
+  for (int i = 0; i < _g->getNumVectors(); i++)
+    visited[i] = false;
+
+  for (int i = 0; i < _g->getNumVectors(); i++)
+    DFSUtil(i, visited);
+}
+
+void output()
+{
+  int i = 0;
+  for (i = 0; i < _g->getNumVectors(); ++i)
+    printf("%d\n", _g->getGrade(i));
 }
 
 int main()
 {
-  parse();
+  parseCommandLine();
+
+  DFS();
+
+  output();
   return 0;
 }

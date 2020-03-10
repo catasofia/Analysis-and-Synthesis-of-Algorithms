@@ -26,7 +26,7 @@ do
 	auxFile=${auxFile%.*}
 	outFile="$auxFile.out"
 	./p1Exe <$inputFile >$outFile
-
+	diff $outFile ${outFile/"$outputdir"/"outputTests/"}
 done
 
 #make clean | grep !""
