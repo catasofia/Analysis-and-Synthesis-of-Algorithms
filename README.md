@@ -5,9 +5,10 @@ Rumo ao 20 :muscle:
 
 # Ja feito
 
- - Input (1ºLinha e Vertices - Arestas Falta)
- - Graph class - Falta arestas adj.
- - Vertices class - Tempos de descoberta e fecho, cores (Falta)
+ - Input
+ - Output
+ - Graph class
+ - Vertices class - Tempos de descoberta e fecho, cores (Falta) (Não sei se necessário, mas talvez)
  - 
 
 
