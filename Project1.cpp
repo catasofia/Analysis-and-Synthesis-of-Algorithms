@@ -24,6 +24,9 @@ private:
 
 public:
   Vertex() {}
+  ~Vertex()
+  {
+  }
 
   int getGrade()
   {
@@ -54,6 +57,16 @@ public:
   {
     return _connections;
   }
+
+  bool hasConnection(int id)
+  {
+    for (Vertex *v : _connections)
+    {
+      if (v->getId() == id)
+        return true;
+    }
+    return false;
+  }
 };
 
 class Graph
@@ -68,6 +81,10 @@ public:
   {
     _vertexes = new Vertex[vertexes];
     _numVertexes = vertexes;
+  }
+  ~Graph()
+  {
+    delete _vertexes;
   }
 
   int getGrade(int num)
@@ -165,15 +182,17 @@ void DFSUtil_u(int v, bool visited[])
 {
   visited[v] = true;
   Vertex *vertex = _g->getVertex(v);
-  for (unsigned int i = (v+1); i < path->size(); i++)
-  {
-    bool found = (find(vertex->getAdjacents().begin(), vertex->getAdjacents().end(), i) 
-        != vertex->getAdjacents().end());
 
-    if (!visited[i] && |found)
-      DFSUtil_u(i, visited);
-    max(_g->getVertex(i),vertex);
+  if (v + 1 < _g->getNumVectors())
+  {
+    int a;
+    a = path[v + 1];
+    if (!visited[a] && vertex->hasConnection(a))
+      DFSUtil_u(a, visited);
+    max(_g->getVertex(a, vertex);
   }
+  printf("saiu %d", v);
+
   path->remove(v);
 }
 
@@ -192,7 +211,8 @@ void DFS()
     visited[i] = false;
   }
 
-  for (int i : *path)
+
+  for (int i = 0; i < _g->getNumVectors(); i++)
     if (!visited[i])
       DFSUtil_u(i, visited);
 }
