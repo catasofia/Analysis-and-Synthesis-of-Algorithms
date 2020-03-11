@@ -168,19 +168,14 @@ void findPath(int v, bool visited[])
 
 void propaga(int v = 0)
 {
-  cout << v << "\n";
-  if ((unsigned)v + 1 < path.size())
+  if ((unsigned)v + 1 <= path.size())
   {
-    Vertex *vertex = _g->getVertex(path[v]);
-    if (vertex->hasConnection(path[v + 1]))
-      propaga(v + 1);
-
-    max(_g->getVertex(path[v]), _g->getVertex(path[v - 1]));
-    printf("Tratando de: %d\n", path[v]);
-    path.erase(path.begin() + v);
-    path.resize(path.size() - 1);
-    
+    while (_g->getVertex(path[v])->hasConnection(path[v + 1]))
+        propaga(v + 1);
+    return;
   }
+  max(_g->getVertex(path[v]), _g->getVertex(path[v - 1]));
+  path.erase(path.begin() + v);
 }
 
 void DFS()
@@ -193,14 +188,15 @@ void DFS()
   for (int i = 0; i < _g->getNumVectors(); i++)
     if (!visited[i])
       findPath(i, visited);
-  propaga();
+  while (!path.empty())
+    propaga();
 }
 
 void output()
 {
-  for (auto i: path)
+  /*for (auto i : path)
     printf("%d", i);
-  cout<<"\n";
+  cout << "Elementos" << path.size() << "\n";*/
   for (int i = 0; i < _g->getNumVectors(); ++i)
     printf("%d\n", _g->getGrade(i));
 }
