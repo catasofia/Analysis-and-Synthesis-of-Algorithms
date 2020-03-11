@@ -158,8 +158,8 @@ void max(Vertex *a, Vertex *b)
   if (a->getGrade() > b->getGrade())
     b->setGrade(a->getGrade());
 
-  else if(a->hasConnection(b->getId()) && b->getGrade() > a->getGrade())
-    a->setGrade(b->getGrade());
+  if(a->hasConnection(b->getId()) && b->getGrade() > a->getGrade())
+    max(b,a);
 }
 
 void findPath(int v, bool visited[])
@@ -178,10 +178,11 @@ void propaga(int v)
 {
   while ((unsigned) (v + 1) < path.size() && 
   _g->getVertex(path[v])->hasConnection(path[v + 1])){
+    max(_g->getVertex(path[v+1]), _g->getVertex(path[v]));
     propaga(v + 1);
     }
-  if ((v - 1) >= 0){
-    max(_g->getVertex(path[v]), _g->getVertex(path[v - 1]));}
+  if ((v - 1) >= 0)
+    max(_g->getVertex(path[v]), _g->getVertex(path[v-1]));
   path.erase(path.begin()+v);
 }
 
@@ -198,6 +199,10 @@ void DFS()
   /* for(auto i: path)
     printf("%d\t", i);
   printf("\n"); */
+
+  /*for (auto i : path)
+    printf("%d", i);
+  cout << "Elementos" << path.size() << "\n";*/
   for (int i = 0; !path.empty(); i++)
     propaga(0);
 }
