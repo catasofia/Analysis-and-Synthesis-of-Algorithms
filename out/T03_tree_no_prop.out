@@ -1,10 +1,19 @@
 0
-entrou1
-entrou2
-entrou7
+1
+2
+Comparando pai: 5	 com o filho: 6
+4	5
+Alterações? Pai: 1
+Comparando pai: 5	 com o filho: 2
+5	6
+Alterações? Pai: 5
+Comparando pai: 5	 com o filho: 0
+6	7
+Alterações? Pai: 7
+7
 6
 5
 4
 3
 2
-2
+1
