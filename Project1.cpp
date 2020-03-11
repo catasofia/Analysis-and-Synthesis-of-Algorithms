@@ -181,7 +181,7 @@ void propaga(int v)
     max(_g->getVertex(path[v+1]), _g->getVertex(path[v]));
     propaga(v + 1);
     }
-  if ((v - 1) >= 0)
+  if ((v - 1)!=-1)
     max(_g->getVertex(path[v]), _g->getVertex(path[v-1]));
   path.erase(path.begin()+v);
 }
