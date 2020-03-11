@@ -1,18 +1,10 @@
 #include <stdio.h>
 #include <stdlib.h>
-#include <string>
-#include <list>
-#include <iterator>
-#include <algorithm>
 #include <iostream>
-#include <memory>
-#include <stack>
+#include <string>
+#include <vector>
 
 using namespace std;
-
-#define WHITE -1
-#define GRAY 0
-#define BLACK 1
 
 /* Classes */
 class Vertex
@@ -20,13 +12,11 @@ class Vertex
 private:
   int _Id;
   int _grade;
-  list<Vertex *> _connections;
+  vector<Vertex *> _connections;
 
 public:
   Vertex() {}
-  ~Vertex()
-  {
-  }
+  ~Vertex() {}
 
   int getGrade()
   {
@@ -53,7 +43,7 @@ public:
     _connections.push_back(v);
   }
 
-  list<Vertex *> getAdjacents()
+  vector<Vertex *> getAdjacents()
   {
     return _connections;
   }
@@ -120,13 +110,15 @@ public:
 /* Global Variable */
 
 Graph *_g;
-list<int> *path;
+vector<int> path;
 
 /* Functions */
 
 void parseCommandLine()
 {
+  int id = 0,idConnection = 0;
   int num_vert = 0, num_edges = 0;
+
   if (scanf("%d,%d", &num_vert, &num_edges) != 2)
     fprintf(stderr, "Scanf error\n"); //1 linha do input
 
@@ -141,17 +133,14 @@ void parseCommandLine()
     exit(1);
   }
 
-  _g = new Graph(num_vert);
+  _g = new Graph(num_vert); //Inicialize graph
 
-  for (int i = 1; i <= num_vert; i++)
+  for (int i = 1; i <= num_vert; i++) //Set Vertices with grade
   {
     _g->newVert(i - 1);
-    //printf("%d\n", _g->getGrade(i));
   }
 
-  int id = 0;
-  int idConnection = 0;
-  for (int i = 1; i <= num_edges; i++)
+  for (int i = 1; i <= num_edges; i++)  //Set relations between
   {
     if (scanf("%d %d", &id, &idConnection) != 2)
       fprintf(stderr, "Error");
@@ -165,69 +154,54 @@ void max(Vertex *a, Vertex *b)
     b->setGrade(a->getGrade());
 }
 
-void DFSUtil(int v, bool visited[])
+void findPath(int v, bool visited[])
 {
   visited[v] = true;
   Vertex *vertex = _g->getVertex(v);
   for (Vertex *adjVertex : vertex->getAdjacents())
   {
     if (!visited[adjVertex->getId()])
-      DFSUtil(adjVertex->getId(), visited);
+      findPath(adjVertex->getId(), visited);
   }
-  path->push_front(v);
-  path->pop_back();
+  path.insert(path.begin(), v);
 }
 
-void DFSUtil_u(int v, bool visited[])
+void propaga(int v=0)
 {
-  visited[v] = true;
-  Vertex *vertex = _g->getVertex(v);
-
-  if (v + 1 < _g->getNumVectors())
-  {
-    int a;
-    a = path[v + 1];
-    if (!visited[a] && vertex->hasConnection(a))
-      DFSUtil_u(a, visited);
-    max(_g->getVertex(a, vertex);
+  //printf("Tratando de: %d\n",path[v]);
+  if ((unsigned) v+1 < path.size()){
+  Vertex *vertex = _g->getVertex(path[v]);
+    if (vertex->hasConnection(v+1)){
+      propaga(v+1);
+    }
+    max(_g->getVertex(path[v]), _g->getVertex(path[v-1]));
+    v++;
   }
-  printf("saiu %d", v);
-
-  path->remove(v);
 }
 
 void DFS()
 {
   bool *visited = new bool[_g->getNumVectors()];
+
   for (int i = 0; i < _g->getNumVectors(); i++)
     visited[i] = false;
 
   for (int i = 0; i < _g->getNumVectors(); i++)
     if (!visited[i])
-      DFSUtil(i, visited);
-
-  for (int i = 0; i < _g->getNumVectors(); i++)
-  {
-    visited[i] = false;
-  }
-
-
-  for (int i = 0; i < _g->getNumVectors(); i++)
-    if (!visited[i])
-      DFSUtil_u(i, visited);
-}
-
-void findPath()
-{
-  path = new list<int>(_g->getNumVectors());
-  //cout<<_g->getNumVectors()<<"\n";
-  DFS();
+      findPath(i, visited);
+  /*for (int i = 0; i < _g->getNumVectors(); i++)
+    printf("%d", path[i]);*/
+  //cout<<"\n";
+  propaga();
+  
 }
 
 void output()
 {
-  int i = 0;
-  for (i = 0; i < _g->getNumVectors(); ++i)
+  /*for (int i = 0; i < _g->getNumVectors(); i++)
+    printf("%d", path[i]);
+  cout<<"\n";*/
+  for (int i = 0; i < _g->getNumVectors(); ++i)
     printf("%d\n", _g->getGrade(i));
 }
 
@@ -235,8 +209,7 @@ int main()
 {
   parseCommandLine();
 
-  //DFS();
-  findPath();
+  DFS();
 
   output();
   return 0;
