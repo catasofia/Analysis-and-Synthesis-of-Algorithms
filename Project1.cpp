@@ -57,6 +57,10 @@ public:
     }
     return false;
   }
+  bool hasChild()
+  {
+    return !(_connections.empty());
+  }
 };
 
 class Graph
@@ -164,22 +168,16 @@ void findPath(int v, bool visited[])
       findPath(adjVertex->getId(), visited);
   }
   path.insert(path.begin(), v);
-
 }
 
-void propaga(int v = 0)
+void propaga(int v)
 {
-  //printf("%d\t", path[v]);
-  if ((unsigned)v + 1 <= path.size()-1)
-  {
-    /* while (_g->getVertex(path[v])->hasConnection(path[v + 1]))
-        propaga(v + 1);
-    return; */
-    if(_g->getVertex(path[v])->hasConnection(path[v + 1]))
-      propaga(v + 1);
-  }
-  max(_g->getVertex(path[v]), _g->getVertex(path[v - 1]));
-  path.erase(path.begin() + v);
+  while ((unsigned) (v + 1) < path.size()-1 && 
+  _g->getVertex(path[v])->hasConnection(path[v + 1]))
+    propaga(path[v + 1]);
+  if ((v - 1) >= 0)
+    max(_g->getVertex(v), _g->getVertex(v-1));
+  path.erase(path.begin()+v);
 }
 
 void DFS()
@@ -192,8 +190,9 @@ void DFS()
   for (int i = 0; i < _g->getNumVectors(); i++)
     if (!visited[i])
       findPath(i, visited);
-  while (!path.empty())
-    propaga();
+      
+  for (int i = 0; !path.empty(); i++)
+    propaga(0);
 }
 
 void output()
