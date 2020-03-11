@@ -150,6 +150,7 @@ void parseCommandLine()
 
 void max(Vertex *a, Vertex *b)
 {
+  printf("%d\t%d\n", a->getGrade(), b->getGrade());
   if (a->getGrade() > b->getGrade())
     b->setGrade(a->getGrade());
 }
