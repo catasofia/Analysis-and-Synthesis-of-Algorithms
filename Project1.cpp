@@ -116,7 +116,7 @@ vector<int> path;
 
 void parseCommandLine()
 {
-  int id = 0,idConnection = 0;
+  int id = 0, idConnection = 0;
   int num_vert = 0, num_edges = 0;
 
   if (scanf("%d,%d", &num_vert, &num_edges) != 2)
@@ -140,7 +140,7 @@ void parseCommandLine()
     _g->newVert(i - 1);
   }
 
-  for (int i = 1; i <= num_edges; i++)  //Set relations between
+  for (int i = 1; i <= num_edges; i++) //Set relations between
   {
     if (scanf("%d %d", &id, &idConnection) != 2)
       fprintf(stderr, "Error");
@@ -166,16 +166,22 @@ void findPath(int v, bool visited[])
   path.insert(path.begin(), v);
 }
 
-void propaga(int v=0)
+void propaga(int v = 0)
 {
-  //printf("Tratando de: %d\n",path[v]);
-  if ((unsigned) v+1 < path.size()){
-  Vertex *vertex = _g->getVertex(path[v]);
-    if (vertex->hasConnection(v+1)){
-      propaga(v+1);
+  cout << v << "\n";
+  if ((unsigned)v + 1 < path.size())
+  {
+    Vertex *vertex = _g->getVertex(path[v]);
+    if (vertex->hasConnection(path[v + 1]))
+    {
+      propaga(v + 1);
     }
-    max(_g->getVertex(path[v]), _g->getVertex(path[v-1]));
-    v++;
+    max(_g->getVertex(path[v]), _g->getVertex(path[v - 1]));
+    printf("Tratando de: %d\n", path[v]);
+    path.erase(path.begin() + v);
+
+    path.resize(path.size() - 1);
+    
   }
 }
 
@@ -192,15 +198,15 @@ void DFS()
   /*for (int i = 0; i < _g->getNumVectors(); i++)
     printf("%d", path[i]);*/
   //cout<<"\n";
-  propaga();
-  
+  //while (!path.empty())
+    propaga();
 }
 
 void output()
 {
-  /*for (int i = 0; i < _g->getNumVectors(); i++)
+  for (int i = 0; i < _g->getNumVectors(); i++)
     printf("%d", path[i]);
-  cout<<"\n";*/
+  cout<<"\n";
   for (int i = 0; i < _g->getNumVectors(); ++i)
     printf("%d\n", _g->getGrade(i));
 }
