@@ -57,6 +57,7 @@ public:
     }
     return false;
   }
+  
   bool hasChild()
   {
     return !(_connections.empty());
@@ -156,6 +157,9 @@ void max(Vertex *a, Vertex *b)
 {
   if (a->getGrade() > b->getGrade())
     b->setGrade(a->getGrade());
+
+  else if(a->hasConnection(b->getId()) && b->getGrade() > a->getGrade())
+    a->setGrade(b->getGrade());
 }
 
 void findPath(int v, bool visited[])
@@ -172,11 +176,12 @@ void findPath(int v, bool visited[])
 
 void propaga(int v)
 {
-  while ((unsigned) (v + 1) < path.size()-1 && 
-  _g->getVertex(path[v])->hasConnection(path[v + 1]))
-    propaga(path[v + 1]);
-  if ((v - 1) >= 0)
-    max(_g->getVertex(v), _g->getVertex(v-1));
+  while ((unsigned) (v + 1) < path.size() && 
+  _g->getVertex(path[v])->hasConnection(path[v + 1])){
+    propaga(v + 1);
+    }
+  if ((v - 1) >= 0){
+    max(_g->getVertex(path[v]), _g->getVertex(path[v - 1]));}
   path.erase(path.begin()+v);
 }
 
@@ -190,7 +195,9 @@ void DFS()
   for (int i = 0; i < _g->getNumVectors(); i++)
     if (!visited[i])
       findPath(i, visited);
-      
+  /* for(auto i: path)
+    printf("%d\t", i);
+  printf("\n"); */
   for (int i = 0; !path.empty(); i++)
     propaga(0);
 }
