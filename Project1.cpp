@@ -1,6 +1,6 @@
+#include <iostream>
 #include <stdio.h>
 #include <stdlib.h>
-#include <iostream>
 #include <string>
 #include <vector>
 
@@ -173,13 +173,11 @@ void propaga(int v = 0)
   {
     Vertex *vertex = _g->getVertex(path[v]);
     if (vertex->hasConnection(path[v + 1]))
-    {
       propaga(v + 1);
-    }
+
     max(_g->getVertex(path[v]), _g->getVertex(path[v - 1]));
     printf("Tratando de: %d\n", path[v]);
     path.erase(path.begin() + v);
-
     path.resize(path.size() - 1);
     
   }
@@ -195,17 +193,13 @@ void DFS()
   for (int i = 0; i < _g->getNumVectors(); i++)
     if (!visited[i])
       findPath(i, visited);
-  /*for (int i = 0; i < _g->getNumVectors(); i++)
-    printf("%d", path[i]);*/
-  //cout<<"\n";
-  //while (!path.empty())
-    propaga();
+  propaga();
 }
 
 void output()
 {
-  for (int i = 0; i < _g->getNumVectors(); i++)
-    printf("%d", path[i]);
+  for (auto i: path)
+    printf("%d", i);
   cout<<"\n";
   for (int i = 0; i < _g->getNumVectors(); ++i)
     printf("%d\n", _g->getGrade(i));
