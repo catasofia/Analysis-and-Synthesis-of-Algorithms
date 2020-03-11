@@ -164,13 +164,13 @@ void findPath(int v, bool visited[])
       findPath(adjVertex->getId(), visited);
   }
   path.insert(path.begin(), v);
-  
+
 }
 
 void propaga(int v = 0)
 {
   //printf("%d\t", path[v]);
-  if ((unsigned)v + 1 <= path.size())
+  if ((unsigned)v + 1 <= path.size()-1)
   {
     /* while (_g->getVertex(path[v])->hasConnection(path[v + 1]))
         propaga(v + 1);
