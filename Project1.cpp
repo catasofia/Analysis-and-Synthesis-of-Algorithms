@@ -150,6 +150,7 @@ void parseCommandLine()
 
 void max(Vertex *a, Vertex *b)
 {
+  printf("%d\t%d\n", a->getGrade(), b->getGrade());
   if (a->getGrade() > b->getGrade())
     b->setGrade(a->getGrade());
 }
@@ -171,15 +172,17 @@ void propaga(int v = 0)
   cout << v << "\n";
   if ((unsigned)v + 1 < path.size())
   {
+    //printf("entrou");
     Vertex *vertex = _g->getVertex(path[v]);
     if (vertex->hasConnection(path[v + 1]))
       propaga(v + 1);
 
-    max(_g->getVertex(path[v]), _g->getVertex(path[v - 1]));
-    printf("Tratando de: %d\n", path[v]);
+    printf("Comparando pai: %d\t com o filho: %d\n", path[v + 1], path[v]);
+    max(_g->getVertex(path[v + 1]), _g->getVertex(path[v]));
+    printf("Alterações? Pai: %d\n", vertex->getGrade());
     path.erase(path.begin() + v);
-    path.resize(path.size() - 1);
-    
+    if(path.size() > 1)
+      path.resize(path.size() - 1);
   }
 }
 
@@ -198,9 +201,9 @@ void DFS()
 
 void output()
 {
-  for (auto i: path)
+  /* for (auto i: path)
     printf("%d", i);
-  cout<<"\n";
+  cout<<"\n"; */
   for (int i = 0; i < _g->getNumVectors(); ++i)
     printf("%d\n", _g->getGrade(i));
 }
