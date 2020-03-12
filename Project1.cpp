@@ -22,6 +22,7 @@ public:
   Vertex() {
     _visited = false;
     _discoveryTime = -1;
+    _low = 0;
   }
   ~Vertex() {}
 
@@ -148,34 +149,46 @@ public:
 Graph *_g;
 vector<int> path;
 stack<Vertex *> stackList;
+int _time = 0;
 
 /* Functions */
 
-void tarjan(int id){
-  int time = 0;
+void tarjan(int id, bool visited[]){
+  
   Vertex* vertex = _g->getVertex(id);
-  vertex->setDiscoveryTime(++time);
-  vertex->setLow(++time);
+  vertex->setDiscoveryTime(++_time);
+  vertex->setLow(++_time);
+  visited[vertex->getId()] = true;
 
-  vertex->setVisited();
   stackList.push(vertex);
 
   vector<Vertex *>::iterator iter;
-  for(iter = vertex->getAdjacents().begin(); iter != vertex->getAdjacents().end();iter++){
+  for(iter = vertex->getAdjacents().begin(); iter != vertex->getAdjacents().end(); iter++){
     Vertex *v = *iter;
 
     if(v->getDiscoveryTime() == -1)  // not visited yet
     {
-      tarjan(v->getId());
-      vertex->setLow(min(vertex->getLow(), v->getDiscoveryTime()));
+      printf("OIIIIIIII\t");
+      tarjan(v->getId(), visited);
+      vertex->setLow(min(vertex->getLow(), v->getLow()));
     }
+
+    else if(visited[v->getId()]){
+      vertex->setLow(min(vertex->getLow(), v->getDiscoveryTime()));
+      printf("SEGUNDO ELSE\t");
+      }
   }
 
   Vertex *w;
+  printf("ANTES DO IF E WHILE\t");
   if(vertex->getLow() == vertex->getDiscoveryTime()){
+    printf("MESMO ANTES DO WHILE\t");
     while(stackList.top() != vertex){
+      printf("ANTES DO W\t");
       w = (Vertex *)stackList.top();
+      printf("DEPOIS DO W\t");
       printf("%d\t", w->getId());
+      path.push_back(w->getId());
       stackList.pop();
     }
   }
@@ -213,11 +226,6 @@ void parseCommandLine()
       fprintf(stderr, "Error");
     _g->addConnection(id - 1, idConnection - 1);
   }
-
-  for(int i = 0; i < num_vert; i++){
-    if(_g->getVertex(i)->getDiscoveryTime() == -1)
-      tarjan(i);
-  }
 }
 
 void max(Vertex *a, Vertex *b)
@@ -252,11 +260,6 @@ void propaga(int v)
     max(_g->getVertex(path[v]), _g->getVertex(path[v-1]));
 
 
-  //só vai verificar com os "pais"....
-  for(int i = 0; i < v; i++){
-    if(_g->getVertex(path[v])->hasConnection(path[i]))
-      max(_g->getVertex(path[v]), _g->getVertex(i));
-    }
   path.erase(path.begin() + v);
 }
 
@@ -272,7 +275,7 @@ void DFS()
 
   for (int i = 0; i < _g->getNumVectors(); i++)
     if (!visited[i])
-      findPath(i, visited);
+      tarjan(i, visited);
   /* for(auto i: path)
     printf("%d\t", i);
   printf("\n"); */
