@@ -82,6 +82,12 @@ void Graph::newVert(int id){
   _vertexes[id].setGrade(grade);
 }
 
+
+/* Global Variable */
+
+Graph *_g;
+int _time = 0;
+
 void SCCUtil(int u, int disc[], int low[], stack<int> *st, 
 					bool stackMember[]) 
 { 
@@ -95,11 +101,12 @@ void SCCUtil(int u, int disc[], int low[], stack<int> *st,
 	stackMember[u] = true; 
 
 	// Go through all vertices adjacent to this 
-	list<int>::iterator i; 
-	for (i = adj[u].begin(); i != adj[u].end(); ++i) 
-	{ 
-		int v = *i; // v is current adjacent of 'u' 
-
+	list<Vertex *>::iterator i; 
+	for (i = _g->getVertex(u)->getAdjacents().begin(); i != _g->getVertex(u)->getAdjacents().end(); ++i) 
+	{
+    Vertex* vert = *i;
+		//int v = (_g->getVertex(*i)->getId()); // v is current adjacent of 'u' 
+    int v = vert->getId();
 		// If v is not visited yet, then recur for it 
 		if (disc[v] == -1) 
 		{ 
@@ -168,10 +175,6 @@ void Graph::getSCC(){
 
 
 
-/* Global Variable */
-
-Graph *_g;
-int _time = 0;
 
 /* Functions */
 
