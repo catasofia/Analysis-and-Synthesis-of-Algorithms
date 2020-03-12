@@ -3,6 +3,7 @@
 #include <stdlib.h>
 #include <string>
 #include <vector>
+#include <stack>
 
 using namespace std;
 
@@ -13,9 +14,15 @@ private:
   int _Id;
   int _grade;
   vector<Vertex *> _connections;
+  int _discoveryTime;
+  int _low;
+  bool _visited;
 
 public:
-  Vertex() {}
+  Vertex() {
+    _visited = false;
+    _discoveryTime = -1;
+  }
   ~Vertex() {}
 
   int getGrade()
@@ -36,6 +43,30 @@ public:
   void setId(int id)
   {
     _Id = id;
+  }
+
+  int getDiscoveryTime(){
+    return _discoveryTime;
+  }
+
+  int getLow(){
+    return _low;
+  }
+
+  bool isVisited(){
+    return _visited;
+  }
+
+  void setVisited(){
+    _visited = true;
+  }
+
+  void setDiscoveryTime(int disc){
+    _discoveryTime = disc;
+  }
+
+  void setLow(int low){
+    _low = low;
   }
 
   void addConnections(Vertex *v)
@@ -116,8 +147,39 @@ public:
 
 Graph *_g;
 vector<int> path;
+stack<Vertex *> stackList;
 
 /* Functions */
+
+void tarjan(int id){
+  int time = 0;
+  Vertex* vertex = _g->getVertex(id);
+  vertex->setDiscoveryTime(++time);
+  vertex->setLow(++time);
+
+  vertex->setVisited();
+  stackList.push(vertex);
+
+  vector<Vertex *>::iterator iter;
+  for(iter = vertex->getAdjacents().begin(); iter != vertex->getAdjacents().end();iter++){
+    Vertex *v = *iter;
+
+    if(v->getDiscoveryTime() == -1)  // not visited yet
+    {
+      tarjan(v->getId());
+      vertex->setLow(min(vertex->getLow(), v->getDiscoveryTime()));
+    }
+  }
+
+  Vertex *w;
+  if(vertex->getLow() == vertex->getDiscoveryTime()){
+    while(stackList.top() != vertex){
+      w = (Vertex *)stackList.top();
+      printf("%d\t", w->getId());
+      stackList.pop();
+    }
+  }
+}
 
 void parseCommandLine()
 {
@@ -150,6 +212,11 @@ void parseCommandLine()
     if (scanf("%d %d", &id, &idConnection) != 2)
       fprintf(stderr, "Error");
     _g->addConnection(id - 1, idConnection - 1);
+  }
+
+  for(int i = 0; i < num_vert; i++){
+    if(_g->getVertex(i)->getDiscoveryTime() == -1)
+      tarjan(i);
   }
 }
 
@@ -192,6 +259,8 @@ void propaga(int v)
     }
   path.erase(path.begin() + v);
 }
+
+
 
 
 void DFS()
