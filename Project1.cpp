@@ -184,14 +184,13 @@ void propaga(int v)
   if ((v - 1) >= 0)
     max(_g->getVertex(path[v]), _g->getVertex(path[v-1]));
 
-  if(_g->getVertex(path[v])->hasChild())
-    for(int i = 0; i < v; i++){
-      if(_g->getVertex(path[v])->hasConnection(path[i]))
-          max(_g->getVertex(path[v]), _g->getVertex(i));
+  for(int i = 0; i < v; i++){
+    if(_g->getVertex(path[v])->hasConnection(path[i]))
+      max(_g->getVertex(path[v]), _g->getVertex(i));
     }
-  
   path.erase(path.begin() + v);
 }
+
 
 void DFS()
 {
