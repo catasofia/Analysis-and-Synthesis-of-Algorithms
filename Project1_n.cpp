@@ -128,13 +128,11 @@ void Graph::tarjan(int u, int* d, int* low,list<int> *L){  //O(V+E)
   for(auto v: _g->getVertex(u)->getAdjacents()){  
     int vert = v->getId();
   
-    if (d[vert]==NIL){
+    if (d[vert]==NIL || contains(L,vert)){
       if (d[vert] == NIL)
         tarjan(vert,d,low,L);
       low[u] = min(low[u], low[vert]);
     }
-    else if (contains(L,vert))
-      low[u] = min(low[u], low[vert]);
   }
 
   int v=0;
@@ -156,16 +154,12 @@ void Graph::getSCC(){
   int *low = new int[_numVertexes];
   list<int> *L = new list<int>(); 
 
-  for(int i=0; i<_numVertexes;i++){
-    d[i] = NIL;
-    low[i] = NIL;
-  }
+  for(int i=0; i<_numVertexes;i++)
+    d[i] = NIL, low[i] = NIL;
 
   for(int i=0; i<_numVertexes;i++)
     if (d[i] == NIL)
       tarjan(i,d,low,L);
-
-  
 }
 
 /* Functions */
@@ -177,13 +171,11 @@ void parseCommandLine() {
   if (scanf("%d,%d", &num_vert, &num_edges) != 2)
     fprintf(stderr, "Scanf error\n"); //1 linha do input
 
-  if (num_vert < 2)
-  {
+  if (num_vert < 2){
     fprintf(stderr, "Minimum of students are 2.");
     exit(1);
   }
-  else if (num_edges < 1)
-  {
+  else if (num_edges < 1){
     fprintf(stderr, "Minimum connections are 1.");
     exit(1);
   }
