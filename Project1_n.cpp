@@ -35,6 +35,7 @@ class Vertex {
           return true;
       return false;
     }
+    bool hasConnections(){ return !_connections.empty();}
 };
 
 class Graph {
@@ -85,6 +86,44 @@ bool contains(list<int> *lst, int v){
   return false;
 }
 
+void maxi(Vertex *a, Vertex *b) {
+  if (a->getGrade() > b->getGrade())
+    b->setGrade(a->getGrade());
+
+  if(a->hasConnection(b->getId()) && b->getGrade() > a->getGrade())
+    maxi(b,a);
+
+}
+
+void compare(list<int> sccList){
+    if(sccList.size() == 1 && !_g->getVertex(*sccList.begin())->hasConnections()){
+        return;
+    }
+
+    else if(sccList.size() == 1 && _g->getVertex(*sccList.begin())->hasConnections()){        
+        //list<Vertex *>::iterator it;
+        for(auto it: _g->getVertex(*sccList.begin())->getAdjacents()){
+          maxi(it,_g->getVertex(*sccList.begin()));}
+        return;
+    }
+
+    else{
+        int max = _g->getVertex(*sccList.begin())->getGrade();
+        for(int i: sccList){
+            if(_g->getVertex(i)->getGrade() > max) max = _g->getVertex(i)->getGrade();
+            
+            for(Vertex* v: _g->getVertex(i)->getAdjacents())
+                if(v->getGrade() > max) max = v->getGrade();
+        }
+
+        for(int i: sccList){
+            if(_g->getVertex(i)->getGrade() < max) _g->getVertex(i)->setGrade(max);
+        }
+
+    }
+
+}
+
 void Graph::tarjan(int u, int* d, int* low,list<int> *L){
   static int visited = 0;
   d[u] = low[u] = visited++;
@@ -110,18 +149,17 @@ void Graph::tarjan(int u, int* d, int* low,list<int> *L){
       Scc.push_back(v);
       L->erase(L->begin());
     }while (u!=v);
-  for (auto i: Scc){
-    cout<<i<<"\n";}
-  cout<<"--\n";
-  Scc.clear();
-  
-}
-    
 
+  //Print da lista
+  /*for (auto i: Scc){
+    cout<<i<<"\n";}
+  cout<<"--\n";*/
+  compare(Scc);
+  Scc.clear();
+  }
 }
 
 void Graph::getSCC(){
-  int visited = 0;
   int *d = new int[_numVertexes];
   int *low = new int[_numVertexes];
   list<int> *L = new list<int>(); 
@@ -180,6 +218,6 @@ int main() {
 
   _g->getSCC();
   
-  //output();
+  output();
   return 0;
 }
