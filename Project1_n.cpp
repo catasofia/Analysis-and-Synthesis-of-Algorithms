@@ -5,6 +5,7 @@
 #include <iterator>
 
 #define NIL -1 
+
 using namespace std;
 
 /* Classes */
@@ -13,10 +14,8 @@ class Vertex {
     int _Id;
     int _grade;
     list<Vertex *> _connections;
-  public:
-    Vertex() {}
-    ~Vertex() {}
 
+  public:
     int getGrade() { return _grade; }
 
     int getId() { return _Id; }
@@ -29,13 +28,9 @@ class Vertex {
 
     list<Vertex *> getAdjacents() { return _connections; }
 
-    bool hasConnection(int id) {
-      for (Vertex *v : _connections)
-        if (v->getId() == id)
-          return true;
-      return false;
-    }
-    bool hasConnections(){ return !_connections.empty();}
+    bool hasConnection(int id);
+
+    bool hasConnections() { return !_connections.empty(); }
 };
 
 class Graph {
@@ -44,7 +39,6 @@ class Graph {
     Vertex *_vertexes;
     
   public:
-    Graph() {}
     Graph(int vertexes) {
       _vertexes = new Vertex[vertexes];
       _numVertexes = vertexes;
@@ -52,9 +46,9 @@ class Graph {
 
     ~Graph() { delete _vertexes; }
 
-    int getGrade(int num) { return _vertexes[num].getGrade(); }
-
     void newVert(int id);
+
+    int getGrade(int num) { return _vertexes[num].getGrade(); }
 
     Vertex *getVertex(int id) { return &_vertexes[id]; }
 
@@ -64,9 +58,17 @@ class Graph {
       _vertexes[id].addConnections(&_vertexes[idConnection]);
     }
 
-    void getSCC();
-    void tarjan(int i, int* d, int* low,list<int> *L);
+    void getSCC();  //O(V)
+    void compare(list<int> sccList);  //O(V+E)
+    void tarjan(int i, int* d, int* low,list<int> *L);  //O(V+E)
 };
+
+bool Vertex::hasConnection(int id){
+  for (Vertex *v : _connections)
+    if (v->getId() == id)
+      return true;
+  return false;
+}
 
 void Graph::newVert(int id){
   int grade = 0;
@@ -82,42 +84,41 @@ Graph *_g;
 
 bool contains(list<int> *lst, int v){
   for(auto it = lst->begin(); it != lst->end(); ++it)
-		if(*it == v) return true;
+		if (*it == v) return true;
   return false;
 }
 
 void maxi(Vertex *a, Vertex *b) {
   if (a->getGrade() > b->getGrade())
     b->setGrade(a->getGrade());
-
-  if(a->hasConnection(b->getId()) && b->getGrade() > a->getGrade())
-    maxi(b,a);
 }
 
-void compare(list<int> sccList){
-  if(sccList.size() == 1 && !_g->getVertex(*sccList.begin())->hasConnections()){
+void Graph::compare(list<int> sccList){
+  Vertex *v = getVertex(*sccList.begin());
+  
+  if(sccList.size() == 1 && !v->hasConnections())
     return;
-  }
 
-  else if(sccList.size() == 1 && _g->getVertex(*sccList.begin())->hasConnections()){        
-    //O(V)
-    for(auto it: _g->getVertex(*sccList.begin())->getAdjacents())
-      maxi(it,_g->getVertex(*sccList.begin()));
+  else if(sccList.size() == 1 && v->hasConnections()){        
+    for(auto it: v->getAdjacents()) //O(V)
+      maxi(it,v);
     return;
   }
 
   else{
-    int max = _g->getVertex(*sccList.begin())->getGrade();
+    int max = v->getGrade();
     for(int i: sccList){    //O(V+E)
-      if(_g->getVertex(i)->getGrade() > max) max = _g->getVertex(i)->getGrade();
+      if(getGrade(i) > max)
+        max = getGrade(i);
 
-      for(Vertex* v: _g->getVertex(i)->getAdjacents())
-        if(v->getGrade() > max) max = v->getGrade();
+      for(Vertex* v: getVertex(i)->getAdjacents())
+        if(v->getGrade() > max)
+          max = v->getGrade();
     }
 
-    for(int i: sccList){  //O(V)
-      if(_g->getVertex(i)->getGrade() < max) _g->getVertex(i)->setGrade(max);
-    }
+    for(int i: sccList)  //O(V)
+      if(getGrade(i) < max)
+        getVertex(i)->setGrade(max);
   }
 }
 
@@ -162,7 +163,6 @@ void Graph::getSCC(){
       tarjan(i,d,low,L);
 }
 
-/* Functions */
 
 void parseCommandLine() {
   int id = 0, idConnection = 0;
@@ -179,8 +179,8 @@ void parseCommandLine() {
     fprintf(stderr, "Minimum connections are 1.");
     exit(1);
   }
-  //Inicialize graph
-  _g = new Graph(num_vert); 
+  
+  _g = new Graph(num_vert); //Inicialize graph
 
   for (int i = 1; i <= num_vert; i++) //Set Vertices with grade
     _g->newVert(i - 1);
@@ -198,10 +198,12 @@ void output() {
 }
 
 int main() {
+
   parseCommandLine();
 
   _g->getSCC();
   
   output();
+  
   return 0;
 }
