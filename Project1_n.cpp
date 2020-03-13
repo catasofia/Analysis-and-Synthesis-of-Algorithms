@@ -92,43 +92,40 @@ void maxi(Vertex *a, Vertex *b) {
 
   if(a->hasConnection(b->getId()) && b->getGrade() > a->getGrade())
     maxi(b,a);
-
 }
 
 void compare(list<int> sccList){
-    if(sccList.size() == 1 && !_g->getVertex(*sccList.begin())->hasConnections()){
-        return;
+  if(sccList.size() == 1 && !_g->getVertex(*sccList.begin())->hasConnections()){
+    return;
+  }
+
+  else if(sccList.size() == 1 && _g->getVertex(*sccList.begin())->hasConnections()){        
+    //O(V)
+    for(auto it: _g->getVertex(*sccList.begin())->getAdjacents())
+      maxi(it,_g->getVertex(*sccList.begin()));
+    return;
+  }
+
+  else{
+    int max = _g->getVertex(*sccList.begin())->getGrade();
+    for(int i: sccList){    //O(V+E)
+      if(_g->getVertex(i)->getGrade() > max) max = _g->getVertex(i)->getGrade();
+
+      for(Vertex* v: _g->getVertex(i)->getAdjacents())
+        if(v->getGrade() > max) max = v->getGrade();
     }
 
-    else if(sccList.size() == 1 && _g->getVertex(*sccList.begin())->hasConnections()){        
-        //list<Vertex *>::iterator it;
-        for(auto it: _g->getVertex(*sccList.begin())->getAdjacents()){
-          maxi(it,_g->getVertex(*sccList.begin()));}
-        return;
+    for(int i: sccList){  //O(V)
+      if(_g->getVertex(i)->getGrade() < max) _g->getVertex(i)->setGrade(max);
     }
-
-    else{
-        int max = _g->getVertex(*sccList.begin())->getGrade();
-        for(int i: sccList){
-            if(_g->getVertex(i)->getGrade() > max) max = _g->getVertex(i)->getGrade();
-            
-            for(Vertex* v: _g->getVertex(i)->getAdjacents())
-                if(v->getGrade() > max) max = v->getGrade();
-        }
-
-        for(int i: sccList){
-            if(_g->getVertex(i)->getGrade() < max) _g->getVertex(i)->setGrade(max);
-        }
-
-    }
-
+  }
 }
 
-void Graph::tarjan(int u, int* d, int* low,list<int> *L){
+void Graph::tarjan(int u, int* d, int* low,list<int> *L){  //O(V+E)
   static int visited = 0;
   d[u] = low[u] = visited++;
   L->push_front(u);
-  for(auto v: _g->getVertex(u)->getAdjacents()){
+  for(auto v: _g->getVertex(u)->getAdjacents()){  
     int vert = v->getId();
   
     if (d[vert]==NIL){
@@ -149,11 +146,6 @@ void Graph::tarjan(int u, int* d, int* low,list<int> *L){
       Scc.push_back(v);
       L->erase(L->begin());
     }while (u!=v);
-
-  //Print da lista
-  /*for (auto i: Scc){
-    cout<<i<<"\n";}
-  cout<<"--\n";*/
   compare(Scc);
   Scc.clear();
   }
