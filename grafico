@@ -1,5 +1,0 @@
-for inputFile in "TestesGerados"/*
-do
-    echo Testes: $inputFile
-    for i in {0..10};do ./p1Exe <$inputFile | grep "Time"; done
-done;

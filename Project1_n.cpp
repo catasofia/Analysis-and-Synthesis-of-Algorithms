@@ -205,7 +205,6 @@ int main() {
   auto stop = high_resolution_clock::now();
   auto duration = duration_cast<microseconds>(stop - start); 
   
-    cout << "Time taken by function: "
-         << duration.count() << " microseconds" << endl; 
+    cout << duration.count() << "ms"<< endl; 
   return 0;
 }
