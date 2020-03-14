@@ -65,6 +65,10 @@ class Graph {
     void tarjan(int i, int* d, int* low,list<int> *L);  //O(V+E)
 };
 
+/* Global Variable */
+Graph *_g;
+
+/* Class Functions*/
 bool Vertex::hasConnection(int id){
   for (Vertex *v : _connections)
     if (v->getId() == id)
@@ -80,19 +84,10 @@ void Graph::newVert(int id){
   _vertexes[id].setGrade(grade);
 }
 
-
-/* Global Variable */
-Graph *_g;
-
 bool contains(list<int> *lst, int v){
   for(auto it = lst->begin(); it != lst->end(); ++it)
 		if (*it == v) return true;
   return false;
-}
-
-void maxi(Vertex *a, Vertex *b) {
-  if (a->getGrade() > b->getGrade())
-    b->setGrade(a->getGrade());
 }
 
 void Graph::compare(list<int> sccList){
@@ -103,7 +98,7 @@ void Graph::compare(list<int> sccList){
 
   else if(sccList.size() == 1 && v->hasConnections()){        
     for(auto it: v->getAdjacents()) //O(V)
-      maxi(it,v);
+      v->setGrade(max(it->getGrade(),v->getGrade()));
     return;
   }
 
@@ -141,12 +136,11 @@ void Graph::tarjan(int u, int* d, int* low,list<int> *L){  //O(V+E)
   int v=0;
   list<int> Scc;
   if (d[u] == low[u]){
-    do
-    {
+    do{
       v = L->front();
       Scc.push_back(v);
       L->erase(L->begin());
-    }while (u!=v);
+    } while (u!=v);
   compare(Scc);
   Scc.clear();
   }
