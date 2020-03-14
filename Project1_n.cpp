@@ -3,10 +3,12 @@
 #include <stdlib.h>
 #include <list>
 #include <iterator>
+#include <chrono> 
 
 #define NIL -1 
 
 using namespace std;
+using namespace std::chrono;
 
 /* Classes */
 class Vertex {
@@ -198,6 +200,7 @@ void output() {
 }
 
 int main() {
+  auto start = high_resolution_clock::now();
 
   parseCommandLine();
 
@@ -205,5 +208,10 @@ int main() {
   
   output();
   
+  auto stop = high_resolution_clock::now();
+  auto duration = duration_cast<microseconds>(stop - start); 
+  
+    cout << "Time taken by function: "
+         << duration.count() << " microseconds" << endl; 
   return 0;
 }
