@@ -60,7 +60,7 @@ class Graph {
 
     void tarjan();  //O(V)
     void sccThreatment(list<int> sccList);  //O(V+E)
-    void tarjanVisit(int i, int* d, int* low, list<int> *L);  //O(V+E)
+    void tarjanVisit(int i, int* dTime, int* low, list<int> *stackL);  //O(V+E)
 };
 
 /* Global Variable */
@@ -82,9 +82,9 @@ void Graph::newVert(int id){
   _vertexes[id].setGrade(grade);
 }
 
-bool contains(list<int> *lst, int v){
+bool contains(list<int> *lst, int id){
   for(auto it = lst->begin(); it != lst->end(); ++it)
-		if (*it == v) return true;
+		if (*it == id) return true;
   return false;
 }
 
@@ -117,27 +117,27 @@ void Graph::sccThreatment(list<int> sccList){
   }
 }
 
-void Graph::tarjanVisit(int u, int* d, int* low,list<int> *L){  //O(V+E)
+void Graph::tarjanVisit(int u, int* dTime, int* low,list<int> *stackL){  //O(V+E)
   static int visited = 0;
-  d[u] = low[u] = visited++;
-  L->push_front(u);
+  dTime[u] = low[u] = visited++;
+  stackL->push_front(u);
   for(auto v: _g->getVertex(u)->getAdjacents()){  
     int vert = v->getId();
   
-    if (d[vert]==NIL || contains(L,vert)){
-      if (d[vert] == NIL)
-        tarjanVisit(vert,d,low,L);
+    if (dTime[vert]==NIL || contains(stackL,vert)){
+      if (dTime[vert] == NIL)
+        tarjanVisit(vert,dTime,low,stackL);
       low[u] = min(low[u], low[vert]);
     }
   }
 
   int v=0;
   list<int> Scc;
-  if (d[u] == low[u]){
+  if (dTime[u] == low[u]){
     do{
-      v = L->front();
+      v = stackL->front();
       Scc.push_back(v);
-      L->erase(L->begin());
+      stackL->erase(stackL->begin());
     } while (u!=v);
   sccThreatment(Scc);
   Scc.clear();
@@ -145,16 +145,16 @@ void Graph::tarjanVisit(int u, int* d, int* low,list<int> *L){  //O(V+E)
 }
 
 void Graph::tarjan(){
-  int *d = new int[_numVertexes];
+  int *dTime = new int[_numVertexes];
   int *low = new int[_numVertexes];
-  list<int> *L = new list<int>(); 
+  list<int> *stackL = new list<int>(); 
 
   for(int i=0; i<_numVertexes;i++)
-    d[i] = NIL, low[i] = NIL;
+    dTime[i] = NIL, low[i] = NIL;
 
   for(int i=0; i<_numVertexes;i++)
-    if (d[i] == NIL)
-      tarjanVisit(i,d,low,L);
+    if (dTime[i] == NIL)
+      tarjanVisit(i,dTime,low,stackL);
 }
 
 
