@@ -1,30 +1,23 @@
 #include <iostream>
 #include <stdio.h>
 #include <stdlib.h>
-#include <string>
-#include <vector>
-#include <stack>
+#include <list>
+#include <iterator>
+#include <chrono> 
+
+#define NIL -1 
 
 using namespace std;
+using namespace std::chrono;
 
 /* Classes */
 class Vertex {
   private:
     int _Id;
     int _grade;
-    vector<Vertex *> _connections;
-    int _discoveryTime;
-    int _low;
-    bool _visited;
+    list<Vertex *> _connections;
 
   public:
-    Vertex() {
-      _visited = false;
-      _discoveryTime = -1;
-      _low = 0;
-    }
-    ~Vertex() {}
-
     int getGrade() { return _grade; }
 
     int getId() { return _Id; }
@@ -33,54 +26,31 @@ class Vertex {
 
     void setId(int id) { _Id = id; }
 
-    int getDiscoveryTime() { return _discoveryTime; }
-
-    int getLow() { return _low; }
-
-    bool isVisited() { return _visited; }
-
-    void setVisited() { _visited = true; }
-
-    void setDiscoveryTime(int disc) { _discoveryTime = disc; }
-
-    void setLow(int low) { _low = low; }
-
     void addConnections(Vertex *v) { _connections.push_back(v); }
 
-    vector<Vertex *> getAdjacents() { return _connections; }
+    list<Vertex *> getAdjacents() { return _connections; }
 
-    bool hasConnection(int id) {
-      for (Vertex *v : _connections)
-        if (v->getId() == id)
-          return true;
-      return false;
-    }
-    
-    bool hasChild() { return !(_connections.empty()); }
+    bool hasConnection(int id);
+
+    bool hasConnections() { return !_connections.empty(); }
 };
 
 class Graph {
   private:
     int _numVertexes;
     Vertex *_vertexes;
-
+    
   public:
-    Graph() {}
     Graph(int vertexes) {
       _vertexes = new Vertex[vertexes];
       _numVertexes = vertexes;
     }
+
     ~Graph() { delete _vertexes; }
 
-    int getGrade(int num) { return _vertexes[num].getGrade(); }
+    void newVert(int id);
 
-    void newVert(int id) {
-      int grade = 0;
-      if (scanf("%d", &grade) != 1)
-        printf("ERRO!\n");
-      _vertexes[id].setId(id);
-      _vertexes[id].setGrade(grade);
-    }
+    int getGrade(int num) { return _vertexes[num].getGrade(); }
 
     Vertex *getVertex(int id) { return &_vertexes[id]; }
 
@@ -89,57 +59,106 @@ class Graph {
     void addConnection(int id, int idConnection) {
       _vertexes[id].addConnections(&_vertexes[idConnection]);
     }
+
+    void getSCC();  //O(V)
+    void compare(list<int> sccList);  //O(V+E)
+    void tarjan(int i, int* d, int* low,list<int> *L);  //O(V+E)
 };
 
 /* Global Variable */
-
 Graph *_g;
-vector<int> path;
-stack<Vertex *> stackList;
-int _time = 0;
 
-/* Functions */
+/* Class Functions*/
+bool Vertex::hasConnection(int id){
+  for (Vertex *v : _connections)
+    if (v->getId() == id)
+      return true;
+  return false;
+}
 
-void tarjan(int id, bool visited[]) {
+void Graph::newVert(int id){
+  int grade = 0;
+  if (scanf("%d", &grade) != 1)
+    printf("ERRO!\n");
+  _vertexes[id].setId(id);
+  _vertexes[id].setGrade(grade);
+}
+
+bool contains(list<int> *lst, int v){
+  for(auto it = lst->begin(); it != lst->end(); ++it)
+		if (*it == v) return true;
+  return false;
+}
+
+void Graph::compare(list<int> sccList){
+  Vertex *v = getVertex(*sccList.begin());
   
-  Vertex* vertex = _g->getVertex(id);
-  vertex->setDiscoveryTime(++_time);
-  vertex->setLow(++_time);
-  visited[vertex->getId()] = true;
+  if(sccList.size() == 1 && !v->hasConnections())
+    return;
 
-  stackList.push(vertex);
-
-  vector<Vertex *>::iterator iter;
-  for(iter = vertex->getAdjacents().begin(); iter != vertex->getAdjacents().end(); iter++){
-    Vertex *v = *iter;
-
-    if(v->getDiscoveryTime() == -1)  // not visited yet
-    {
-      printf("OIIIIIIII\t");
-      tarjan(v->getId(), visited);
-      vertex->setLow(min(vertex->getLow(), v->getLow()));
-    }
-
-    else if(visited[v->getId()]){
-      vertex->setLow(min(vertex->getLow(), v->getDiscoveryTime()));
-      printf("SEGUNDO ELSE\t");
-      }
+  else if(sccList.size() == 1 && v->hasConnections()){        
+    for(auto it: v->getAdjacents()) //O(V)
+      v->setGrade(max(it->getGrade(),v->getGrade()));
+    return;
   }
 
-  Vertex *w;
-  printf("ANTES DO IF E WHILE\t");
-  if(vertex->getLow() == vertex->getDiscoveryTime()){
-    printf("MESMO ANTES DO WHILE\t");
-    while(stackList.top() != vertex){
-      printf("ANTES DO W\t");
-      w = (Vertex *)stackList.top();
-      printf("DEPOIS DO W\t");
-      printf("%d\t", w->getId());
-      path.push_back(w->getId());
-      stackList.pop();
+  else{
+    int max = v->getGrade();
+    for(int i: sccList){    //O(V+E)
+      if(getGrade(i) > max)
+        max = getGrade(i);
+
+      for(Vertex* v: getVertex(i)->getAdjacents())
+        if(v->getGrade() > max)
+          max = v->getGrade();
     }
+
+    for(int i: sccList)  //O(V)
+      if(getGrade(i) < max)
+        getVertex(i)->setGrade(max);
   }
 }
+
+void Graph::tarjan(int u, int* d, int* low,list<int> *L){  //O(V+E)
+  static int visited = 0;
+  d[u] = low[u] = visited++;
+  L->push_front(u);
+  for(auto v: _g->getVertex(u)->getAdjacents()){  
+    int vert = v->getId();
+  
+    if (d[vert]==NIL || contains(L,vert)){
+      if (d[vert] == NIL)
+        tarjan(vert,d,low,L);
+      low[u] = min(low[u], low[vert]);
+    }
+  }
+
+  int v=0;
+  list<int> Scc;
+  if (d[u] == low[u]){
+    do{
+      v = L->front();
+      Scc.push_back(v);
+      L->erase(L->begin());
+    } while (u!=v);
+  compare(Scc);
+  Scc.clear();
+  }
+}
+
+void Graph::getSCC(){
+  int *d = new int[_numVertexes];
+  int *low = new int[_numVertexes];
+  list<int> *L = new list<int>(); 
+
+  for(int i=0; i<_numVertexes;i++)
+    d[i] = NIL, low[i] = NIL;
+
+  for(int i=0; i<_numVertexes;i++)
+    if (d[i] == NIL)
+      tarjan(i,d,low,L);
+}
+
 
 void parseCommandLine() {
   int id = 0, idConnection = 0;
@@ -148,101 +167,44 @@ void parseCommandLine() {
   if (scanf("%d,%d", &num_vert, &num_edges) != 2)
     fprintf(stderr, "Scanf error\n"); //1 linha do input
 
-  if (num_vert < 2)
-  {
+  if (num_vert < 2){
     fprintf(stderr, "Minimum of students are 2.");
     exit(1);
   }
-  else if (num_edges < 1)
-  {
+  else if (num_edges < 1){
     fprintf(stderr, "Minimum connections are 1.");
     exit(1);
   }
-
+  
   _g = new Graph(num_vert); //Inicialize graph
 
   for (int i = 1; i <= num_vert; i++) //Set Vertices with grade
     _g->newVert(i - 1);
 
-  for (int i = 1; i <= num_edges; i++) {//Set relations between
+  for (int i = 1; i <= num_edges; i++) {  //Set relations between
     if (scanf("%d %d", &id, &idConnection) != 2)
       fprintf(stderr, "Error");
     _g->addConnection(id - 1, idConnection - 1);
   }
 }
 
-void max(Vertex *a, Vertex *b) {
-  if (a->getGrade() > b->getGrade())
-    b->setGrade(a->getGrade());
-
-  if(a->hasConnection(b->getId()) && b->getGrade() > a->getGrade())
-    max(b,a);
-}
-
-void findPath(int v, bool visited[]) {
-  visited[v] = true;
-  Vertex *vertex = _g->getVertex(v);
-  for (Vertex *adjVertex : vertex->getAdjacents())
-  {
-    if (!visited[adjVertex->getId()])
-      findPath(adjVertex->getId(), visited);
-  }
-  path.insert(path.begin(), v);
-}
-
-void propaga(int v) {
-  while ((unsigned) (v + 1) < path.size() && 
-  _g->getVertex(path[v])->hasConnection(path[v + 1])){
-    max(_g->getVertex(path[v+1]), _g->getVertex(path[v]));
-    propaga(v + 1);
-<<<<<<< HEAD
-    }
-  if ((v - 1)!=-1)
-=======
-  }
-  if ((v - 1) >= 0)
->>>>>>> ca4c65b648d86bb3063ae663aed116b498235628
-    max(_g->getVertex(path[v]), _g->getVertex(path[v-1]));
-  path.erase(path.begin() + v);
-}
-
-
-
-
-void DFS() {
-  bool *visited = new bool[_g->getNumVectors()];
-
-  for (int i = 0; i < _g->getNumVectors(); i++)
-    visited[i] = false;
-
-  for (int i = 0; i < _g->getNumVectors(); i++)
-    if (!visited[i])
-      tarjan(i, visited);
-
-  /* for(auto i: path)
-    printf("%d\t", i);
-  printf("\n"); */
-
-  /*for (auto i : path)
-    printf("%d", i);
-  cout << "Elementos" << path.size() << "\n";*/
-  for (int i = 0; !path.empty(); i++)
-    propaga(0);
-}
-
 void output() {
-  /* for (auto i : path)
-    printf("%d", i);
-  cout << "Elementos" << path.size() << "\n"; */
   for (int i = 0; i < _g->getNumVectors(); ++i)
     printf("%d\n", _g->getGrade(i));
 }
 
 int main() {
+  auto start = high_resolution_clock::now();
+
   parseCommandLine();
 
-  DFS();
-
+  _g->getSCC();
+  
   output();
+  
+  auto stop = high_resolution_clock::now();
+  auto duration = duration_cast<microseconds>(stop - start); 
+  
+    cout << duration.count() << "ms"<< endl; 
   return 0;
 }

@@ -1,5 +1,5 @@
 all:
-	g++ -std=c++11 -O3 -Wall Project1_n.cpp -lm -o p1Exe
+	g++ -std=c++11 -O3 -Wall Project1.cpp -lm -o p1Exe
 
 g:
 	g++ -std=c++11 -O3 -Wall gerador.cpp -lm -o gerador
