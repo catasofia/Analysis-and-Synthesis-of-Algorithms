@@ -3,28 +3,26 @@
 #include <stdlib.h>
 #include <list>
 #include <iterator>
-#include <chrono> 
 
 #define NIL -1 
 
 using namespace std;
-using namespace std::chrono;
 
 /* Classes */
 class Vertex {
   private:
-    int _Id;
+    int _id;
     int _grade;
     list<Vertex *> _connections;
 
   public:
     int getGrade() { return _grade; }
 
-    int getId() { return _Id; }
+    int getId() { return _id; }
 
     void setGrade(int newGrade) { _grade = newGrade; }
 
-    void setId(int id) { _Id = id; }
+    void setId(int id) { _id = id; }
 
     void addConnections(Vertex *v) { _connections.push_back(v); }
 
@@ -60,9 +58,9 @@ class Graph {
       _vertexes[id].addConnections(&_vertexes[idConnection]);
     }
 
-    void getSCC();  //O(V)
-    void compare(list<int> sccList);  //O(V+E)
-    void tarjan(int i, int* d, int* low,list<int> *L);  //O(V+E)
+    void tarjan();  //O(V)
+    void sccThreatment(list<int> sccList);  //O(V+E)
+    void tarjanVisit(int i, int* d, int* low, list<int> *L);  //O(V+E)
 };
 
 /* Global Variable */
@@ -90,14 +88,14 @@ bool contains(list<int> *lst, int v){
   return false;
 }
 
-void Graph::compare(list<int> sccList){
+void Graph::sccThreatment(list<int> sccList){
   Vertex *v = getVertex(*sccList.begin());
   
   if(sccList.size() == 1 && !v->hasConnections())
     return;
 
   else if(sccList.size() == 1 && v->hasConnections()){        
-    for(auto it: v->getAdjacents()) //O(V)
+    for(auto it: v->getAdjacents()) //O(E)
       v->setGrade(max(it->getGrade(),v->getGrade()));
     return;
   }
@@ -119,7 +117,7 @@ void Graph::compare(list<int> sccList){
   }
 }
 
-void Graph::tarjan(int u, int* d, int* low,list<int> *L){  //O(V+E)
+void Graph::tarjanVisit(int u, int* d, int* low,list<int> *L){  //O(V+E)
   static int visited = 0;
   d[u] = low[u] = visited++;
   L->push_front(u);
@@ -128,7 +126,7 @@ void Graph::tarjan(int u, int* d, int* low,list<int> *L){  //O(V+E)
   
     if (d[vert]==NIL || contains(L,vert)){
       if (d[vert] == NIL)
-        tarjan(vert,d,low,L);
+        tarjanVisit(vert,d,low,L);
       low[u] = min(low[u], low[vert]);
     }
   }
@@ -141,12 +139,12 @@ void Graph::tarjan(int u, int* d, int* low,list<int> *L){  //O(V+E)
       Scc.push_back(v);
       L->erase(L->begin());
     } while (u!=v);
-  compare(Scc);
+  sccThreatment(Scc);
   Scc.clear();
   }
 }
 
-void Graph::getSCC(){
+void Graph::tarjan(){
   int *d = new int[_numVertexes];
   int *low = new int[_numVertexes];
   list<int> *L = new list<int>(); 
@@ -156,7 +154,7 @@ void Graph::getSCC(){
 
   for(int i=0; i<_numVertexes;i++)
     if (d[i] == NIL)
-      tarjan(i,d,low,L);
+      tarjanVisit(i,d,low,L);
 }
 
 
@@ -165,7 +163,7 @@ void parseCommandLine() {
   int num_vert = 0, num_edges = 0;
 
   if (scanf("%d,%d", &num_vert, &num_edges) != 2)
-    fprintf(stderr, "Scanf error\n"); //1 linha do input
+    fprintf(stderr, "Scanf error\n"); //reads the first line of input
 
   if (num_vert < 2){
     fprintf(stderr, "Minimum of students are 2.");
@@ -181,7 +179,7 @@ void parseCommandLine() {
   for (int i = 1; i <= num_vert; i++) //Set Vertices with grade
     _g->newVert(i - 1);
 
-  for (int i = 1; i <= num_edges; i++) {  //Set relations between
+  for (int i = 1; i <= num_edges; i++) {  //Set relations between vertexes
     if (scanf("%d %d", &id, &idConnection) != 2)
       fprintf(stderr, "Error");
     _g->addConnection(id - 1, idConnection - 1);
@@ -194,17 +192,11 @@ void output() {
 }
 
 int main() {
-  auto start = high_resolution_clock::now();
-
   parseCommandLine();
 
-  _g->getSCC();
+  _g->tarjan();
   
   output();
-  
-  auto stop = high_resolution_clock::now();
-  auto duration = duration_cast<microseconds>(stop - start); 
-  
-    cout << duration.count() << "ms"<< endl; 
+
   return 0;
 }
