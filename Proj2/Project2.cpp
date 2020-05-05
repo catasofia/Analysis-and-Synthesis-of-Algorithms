@@ -13,34 +13,37 @@ using namespace std;
 
 class ResArch;
 
-class Vertex{
-  private:
-    int _id;
-    int height;
-    int excess;
-    int _type;
-    int _avenue;
-    int _street;
+class Vertex
+{
+private:
+  int _id;
+  int height;
+  int excess;
+  int _type;
+  int _avenue;
+  int _street;
 
-    list<ResArch *> archs;
-    list<ResArch *> backArchs;
-    list<ResArch *> neighbours;
+  list<ResArch *> archs;
+  list<ResArch *> backArchs;
+  list<ResArch *> neighbours;
 
-  public:
-    Vertex(){
-      _id = NIL;
-      _type = NIL;
-    }
-    Vertex(int id, int type){
-      _id = id;
-      _type = type;
-    }
+public:
+  Vertex()
+  {
+    _id = NIL;
+    _type = NIL;
+  }
+  Vertex(int id, int type)
+  {
+    _id = id;
+    _type = type;
+  }
 
-    void addArch(ResArch *arch) {archs.push_back(arch);}
-    
-    void addBackArch(ResArch *arch){backArchs.push_back(arch);}
+  void addArch(ResArch *arch) { archs.push_back(arch); }
 
-    /* ResArch* getLessArch(){
+  void addBackArch(ResArch *arch) { backArchs.push_back(arch); }
+
+  /* ResArch* getLessArch(){
       for(ResArch *aux: archs){
         if(aux->getDestinyVertex()->getHeight() < height) neighbours.push_front(aux);
       }
@@ -53,66 +56,68 @@ class Vertex{
     } */
 };
 
+class ResArch
+{
+private:
+  int flux;
+  int capacity;
+  int destinyVertexCapacity;
+  Vertex *originVertex;
+  Vertex *destinyVertex;
 
+public:
+  ResArch(Vertex *origin, Vertex *destiny)
+  {
+    flux = 0;
+    capacity = 1;
+    originVertex = origin;
+    destinyVertex = destiny;
+  }
 
-class ResArch{
-  private:
-    int capacity;
-    int destinyVertexCapacity;
-    int flux;
-    Vertex* destinyVertex;
-    Vertex* originVertex;
-  
-  public:
-    ResArch(Vertex *origin, Vertex *destiny){
-      capacity = 1;
-      originVertex = origin;
-      destinyVertex = destiny;
-      flux = 0;
-    }
+  int getCapacity() { return capacity; }
 
-    int getCapacity() {return capacity;}
+  int getFlux() { return flux; }
 
-    int getFlux() {return flux;}
+  void addFlux(int f)
+  {
+    flux += f;
+    capacity -= f;
+  }
 
-    void addFlux(int f){
-      flux += f;
-      capacity -= f;
-    }
-
-    Vertex* getOriginVertex() {return originVertex;}
-    Vertex* getDestinyVertex() {return destinyVertex;}
+  Vertex *getOriginVertex() { return originVertex; }
+  Vertex *getDestinyVertex() { return destinyVertex; }
 };
 
+class Graph
+{
+private:
+  int _citizens;
+  int _supermarkets;
+  int _numberVertexes;
+  int _avenues;
+  int _streets;
 
-class Graph{
-  private:
-    int _citizens;
-    int _supermarkets;
-    int _numberVertexes;
-    int _avenues;
-    int _streets;
+  Vertex *_source;
+  Vertex *_destiny;
+  Vertex *_vertexes;
 
-
-    Vertex *_source;
-    Vertex *_destiny;
-    Vertex *_vertexes;
-  
-  public:
-  
-  Graph(int avenues, int streets) {
-      _numberVertexes = avenues*streets;
-      _vertexes = new Vertex[_numberVertexes];
-      _avenues = avenues;
-      _streets = streets;
+public:
+  Graph(int avenues, int streets)
+  {
+    _numberVertexes = avenues * streets;
+    _vertexes = new Vertex[_numberVertexes];
+    _avenues = avenues;
+    _streets = streets;
   }
 
   ~Graph() { delete _vertexes; }
 
-  Vertex* getVertex(int id) {return &_vertexes[id];}
+  Vertex *getVertex(int id) { return &_vertexes[id]; }
 
-  void addConnections(){
-    for (int i = 1; i <= _numberVertexes; i++){
+  void addConnections()
+  {
+    for (int i = 1; i <= _numberVertexes; i++)
+    {
       if (i - 1 % _avenues != 0)
         _vertexes[i].addArch(new ResArch(&_vertexes[i], &_vertexes[i - 1]));
 
@@ -126,55 +131,59 @@ class Graph{
         _vertexes[i].addArch(new ResArch(&_vertexes[i], &_vertexes[i + _avenues]));
     }
   }
-
 };
 
 int maxFlux = 0;
 Graph *_g;
 
-void parseCommandLine(){
-	int aven_num = 0, street_num = 0;
-	int markets = 0, citizens = 0;
+void parseCommandLine()
+{
+  int aven_num = 0, street_num = 0;
+  int markets = 0, citizens = 0;
 
-	if (scanf("%d %d", &aven_num, &street_num) != 2)
-		fprintf(stderr, "Scanf error\n"); //reads the first line of input
+  if (scanf("%d %d", &aven_num, &street_num) != 2)
+    fprintf(stderr, "Scanf error\n"); //reads the first line of input
 
-	if (scanf("%d %d", &markets, &citizens) != 2)
-		fprintf(stderr, "Scanf error\n"); //reads the second line of input
+  if (scanf("%d %d", &markets, &citizens) != 2)
+    fprintf(stderr, "Scanf error\n"); //reads the second line of input
 
-	if (aven_num < 1){
-		fprintf(stderr, "Minimum of avenues is 1.");
-		exit(1);
-	}
+  if (aven_num < 1)
+  {
+    fprintf(stderr, "Minimum of avenues is 1.");
+    exit(1);
+  }
 
-	if (street_num < 1){
-		fprintf(stderr, "Minimum of streets is 1.");
-		exit(1);
-	}
+  if (street_num < 1)
+  {
+    fprintf(stderr, "Minimum of streets is 1.");
+    exit(1);
+  }
 
-	if (markets < 1){
-		fprintf(stderr, "Minimum of markets is 1.");
-		exit(1);
-	}
+  if (markets < 1)
+  {
+    fprintf(stderr, "Minimum of markets is 1.");
+    exit(1);
+  }
 
-	if (citizens < 1){
-		fprintf(stderr, "Minimum of citizens is 1.");
-		exit(1);
-	}
+  if (citizens < 1)
+  {
+    fprintf(stderr, "Minimum of citizens is 1.");
+    exit(1);
+  }
 
   _g = new Graph(aven_num, street_num);
-
 }
 
-void output(){
+void output()
+{
   printf("%d\n", maxFlux);
 }
 
-
-int main(){
-	parseCommandLine();
+int main()
+{
+  parseCommandLine();
 
   output();
 
-	return 0;
+  return 0;
 }
