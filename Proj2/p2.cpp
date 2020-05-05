@@ -13,14 +13,22 @@
 using namespace std;
 
 
+//Class Vertex tem de ter uma lista de arcos residuais com 
+//os arcos para a frente e outra lista de arcos residuais com os arcos de sentido inverso
+// lista ordenada com os arcos que levam a um vizinho com altura <
 class Vertex{
 	private:
 		int type;
+		int height;
+		int excess;
 		bool ocupied;
 		list<Vertex *> _connections;
 
 	public:
 		int getType() {return type;}
+
+		void setExcess(int e){excess = e;}
+		void increaseExcess(int e){excess += e;}
 
 		void setType(int newType) { 
 			if (type == SUPERMARKET){
