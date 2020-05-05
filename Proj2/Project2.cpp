@@ -4,6 +4,7 @@
 #include <list>
 #include <iterator>
 
+#define NIL -3
 #define SUPERMARKET 1
 #define CITIZEN 0
 #define EMPTY_CROSSROAD -1
@@ -26,7 +27,10 @@ class Vertex{
     list<ResArch *> neighbours;
 
   public:
-    
+    Vertex(){
+      _id = NIL;
+      _type = NIL;
+    }
     Vertex(int id, int type){
       _id = id;
       _type = type;
@@ -109,13 +113,17 @@ class Graph{
 
   void addConnections(){
     for (int i = 1; i <= _numberVertexes; i++){
-      if (i - 1 % _avenues != 0) _vertexes[i].addArch(new ResArch(&_vertexes[i], &_vertexes[i - 1]));
+      if (i - 1 % _avenues != 0)
+        _vertexes[i].addArch(new ResArch(&_vertexes[i], &_vertexes[i - 1]));
 
-      if (i + 1 % _streets != 0) _vertexes[i].addArch(new ResArch(&_vertexes[i], &_vertexes[i + 1]));
+      if (i + 1 % _streets != 0)
+        _vertexes[i].addArch(new ResArch(&_vertexes[i], &_vertexes[i + 1]));
 
-      if (i - _avenues > 0) _vertexes[i].addArch(new ResArch(&_vertexes[i], &_vertexes[i - _avenues]));
+      if (i - _avenues > 0)
+        _vertexes[i].addArch(new ResArch(&_vertexes[i], &_vertexes[i - _avenues]));
 
-      if (i + _avenues <= _numberVertexes) _vertexes[i].addArch(new ResArch(&_vertexes[i], &_vertexes[i + _avenues]));
+      if (i + _avenues <= _numberVertexes)
+        _vertexes[i].addArch(new ResArch(&_vertexes[i], &_vertexes[i + _avenues]));
     }
   }
 
