@@ -10,51 +10,9 @@
 #define EMPTY_CROSSROAD -1
 
 using namespace std;
-
+class Vertex;
 class ResArch;
-
-class Vertex
-{
-private:
-  int _id;
-  int height;
-  int excess;
-  int _type;
-  int _avenue;
-  int _street;
-
-  list<ResArch *> archs;
-  list<ResArch *> backArchs;
-  list<ResArch *> neighbours;
-
-public:
-  Vertex()
-  {
-    _id = NIL;
-    _type = NIL;
-  }
-  Vertex(int id, int type)
-  {
-    _id = id;
-    _type = type;
-  }
-
-  void addArch(ResArch *arch) { archs.push_back(arch); }
-
-  void addBackArch(ResArch *arch) { backArchs.push_back(arch); }
-
-  /* ResArch* getLessArch(){
-      for(ResArch *aux: archs){
-        if(aux->getDestinyVertex()->getHeight() < height) neighbours.push_front(aux);
-      }
-
-      for(ResArch *aux: backArchs){
-        if(aux->getOriginVertex()->getHeight() < height) neighbours.push_front(aux);
-      }
-
-      return neighbours[0];
-    } */
-};
+class Graph;
 
 class ResArch
 {
@@ -88,6 +46,62 @@ public:
   Vertex *getDestinyVertex() { return destinyVertex; }
 };
 
+class Vertex
+{
+private:
+  int _id;
+  int height;
+  int excess;
+  int _type;
+  int _avenue;
+  int _street;
+
+  list<ResArch *> archs;
+  /*list<ResArch *> backArchs;
+  list<ResArch *> neighbours;*/
+
+public:
+  Vertex()
+  {
+    _id = NIL;
+    _type = NIL;
+  }
+  Vertex(int id)
+  {
+    _id = id;
+  }
+  Vertex(int id, int type)
+  {
+    _id = id;
+    _type = type;
+  }
+
+  int setId(int id) { _id = id; }
+  
+  int getId() { return _id; }
+  
+  void addArch(ResArch *arch) { archs.push_back(arch); }
+  
+  void getArch() { 
+    for(ResArch *aux: archs)
+      printf("%d\t%d\t%d\n",_id, aux->getOriginVertex()->getId(), aux->getDestinyVertex()->getId()); 
+  }
+
+  /*void addBackArch(ResArch *arch) { backArchs.push_back(arch); }*/
+ 
+  /* ResArch* getLessArch(){
+      for(ResArch *aux: archs){
+        if(aux->getDestinyVertex()->getHeight() < height) neighbours.push_front(aux);
+      }
+
+      for(ResArch *aux: backArchs){
+        if(aux->getOriginVertex()->getHeight() < height) neighbours.push_front(aux);
+      }
+
+      return neighbours[0];
+    } */
+};
+
 class Graph
 {
 private:
@@ -104,10 +118,12 @@ private:
 public:
   Graph(int avenues, int streets)
   {
-    _numberVertexes = avenues * streets;
-    _vertexes = new Vertex[_numberVertexes];
     _avenues = avenues;
     _streets = streets;
+    _numberVertexes = avenues * streets;
+    _vertexes = new Vertex[_numberVertexes];
+    
+    addConnections();
   }
 
   ~Graph() { delete _vertexes; }
@@ -144,7 +160,7 @@ void parseCommandLine()
   if (scanf("%d %d", &aven_num, &street_num) != 2)
     fprintf(stderr, "Scanf error\n"); //reads the first line of input
 
-  if (scanf("%d %d", &markets, &citizens) != 2)
+  /*if (scanf("%d %d", &markets, &citizens) != 2)
     fprintf(stderr, "Scanf error\n"); //reads the second line of input
 
   if (aven_num < 1)
@@ -169,7 +185,7 @@ void parseCommandLine()
   {
     fprintf(stderr, "Minimum of citizens is 1.");
     exit(1);
-  }
+  }*/
 
   _g = new Graph(aven_num, street_num);
 }
@@ -183,7 +199,12 @@ int main()
 {
   parseCommandLine();
 
-  output();
+  _g->getVertex(1)->getArch();
+
+  
+  /*output();*/
+
+
 
   return 0;
 }
