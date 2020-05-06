@@ -62,6 +62,7 @@ private:
   int _type;
   int _avenue;
   int _street;
+  bool ocupied;
 
   list<ResArch *> archs;
   /*list<ResArch *> backArchs;
@@ -185,6 +186,7 @@ void Graph::newVert(int id){
 
 int maxFlux = 0;
 Graph *_g;
+list<Vertex *> queue;
 
 void parseCommandLine()
 {
@@ -262,7 +264,11 @@ void relabel(Vertex *v){
       min = arch->getDestinyVertex()->getHeight();
   }
   v->setHeight(1 + min);
+  queue.push_front(v);
+
+
 }
+
 
 void pushRelab(ResArch *arch){
   int d = 0;
