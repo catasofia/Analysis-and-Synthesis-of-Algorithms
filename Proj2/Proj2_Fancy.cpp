@@ -3,6 +3,7 @@
 #include <list>
 #include <iterator>
 #include <queue>
+#include <climits>
 
 using namespace std;
 #define NIL -1
@@ -37,7 +38,9 @@ public:
   }
   Vertex *getOriginVertex() { return originVertex; }
   Vertex *getDestinyVertex() { return destinyVertex; }
-  void setFlux(int nFlux){ flux=nFlux; }
+  void setFlux(int nFlux){ flux += nFlux; }
+  void resetFlux() {flux = 0;}
+  void setCapacity(int nCap) { capacity = nCap; }
   int getCapacity(){ return capacity; }
 };
 
@@ -46,15 +49,19 @@ private:
   int _id;
   int _level;
   int _excess;
+  bool _ocupied;
   Type _type;
   list<ResArch *> archs;
   list<ResArch *> back_archs;
+  list<ResArch *> lower_height;
+
 
 public:
   Vertex(){
     _id = NIL;
     _type = none;
     _level=_excess=0;
+    
   }
 
   int getId() { return _id; }
@@ -77,15 +84,35 @@ public:
     back_archs.push_back(narch);
   }
 
+  void updateLowerVertex(){
+    for(ResArch * edge : archs){
+      if(edge->getDestinyVertex()->getLevel() < _level)
+        lower_height.push_back(edge);
+    }
+
+    for(ResArch * edge : back_archs){
+      if(edge->getDestinyVertex()->getLevel() < _level)
+        lower_height.push_back(edge);
+    }
+  }
+
+  list<ResArch *> getLowerH(){ return lower_height; }
+
   list<ResArch *> getArch() { return archs; }
  
   list<ResArch *> getBackArch() { return back_archs; }
 
-  void setExcess(int nExcess){ _excess = nExcess;}
+  void setExcess(int nExcess){ _excess += nExcess;}
 
   int getExcess(){ return _excess;}
   
-  void setHight(int hight) { return ; }
+  void setHeight(int height) { _level = height; }
+
+  int getLevel(){ return _level; }
+
+  void changeOcupied(){ _ocupied = !_ocupied; }
+
+  bool isOcupied() { return _ocupied; }
 };
 
 class Graph{
@@ -196,10 +223,10 @@ void parseCommandLine(){
 }
 
 void initializePreFlow(){
-  /*Default values of hight and excess equals 0*/
+  /*Default values of height and excess equals 0*/
   /*Default values of flux and capacity equals 0*/
   Vertex* s= _g->getSource();
-  s->setHight(_g->getSize());
+  s->setHeight(_g->getSize());
 
 
   for (auto u:s->getArch()){
@@ -207,7 +234,7 @@ void initializePreFlow(){
 
     u->setFlux(capacity);
     u->getDestinyVertex()->setExcess(capacity);
-    s->setExcess(s->getExcess() - capacity);
+    s->setExcess(-capacity);
   }
 
   for (auto u:s->getBackArch())
@@ -224,6 +251,62 @@ int checkFlow(queue<Vertex*> ver)
     return -1; 
 } 
 
+void relabel(Vertex *u){
+  int minHeight = INT_MAX;
+  for(ResArch *edge: u->getArch()){
+    if(edge->getCapacity() > 0 && edge->getDestinyVertex()->getLevel() < minHeight)
+      minHeight = edge->getDestinyVertex()->getLevel();
+  }
+
+  for(ResArch *edge: u->getBackArch()){
+    if(edge->getCapacity() > 0 && edge->getDestinyVertex()->getLevel() < minHeight)
+      minHeight = edge->getDestinyVertex()->getLevel();
+  }
+  u->setHeight(minHeight + 1);
+  u->updateLowerVertex();
+}
+
+
+void Push(ResArch *edge){
+  Vertex *u = edge->getOriginVertex();
+  Vertex *v = edge->getDestinyVertex();
+  int d = 0;
+  d = min(u->getExcess(), edge->getCapacity());
+  edge->setFlux(d);
+
+  u->setExcess(-d);
+  v->setExcess(d);
+
+}
+
+
+void discharge(Vertex *u){
+  while(u->getExcess() > 0){
+    if(u->getLowerH().empty())
+      relabel(u);
+    else{
+      ResArch *edge = u->getLowerH().front();
+      u->getLowerH().pop_front();
+      if(edge->getCapacity() > 0  && !edge->getDestinyVertex()->isOcupied()){
+        Push(edge);
+        edge->getDestinyVertex()->changeOcupied();
+        for(ResArch *aux: u->getBackArch()){
+          if(aux->getOriginVertex() == edge->getDestinyVertex()) aux->resetFlux();
+        }
+      }
+      else if(edge->getCapacity() > 0  && edge->getDestinyVertex()->isOcupied()){
+        Push(edge);
+        edge->getOriginVertex()->changeOcupied();
+        for(ResArch *aux: u->getArch()){
+          if(aux->getDestinyVertex() == edge->getOriginVertex()) aux->resetFlux();
+        } 
+      }
+    }
+  }
+  
+}
+
+
 void relabelToFront(){
   initializePreFlow();
   queue<Vertex *> stack;
@@ -231,13 +314,20 @@ void relabelToFront(){
     Vertex *u=_g->getVertex(i);
     stack.push(u);
   }
-  while (checkFlow()!=-1){
-    VENHO JA
-  }
+  //while (checkFlow(stack)!=-1){
+    int h;
+    Vertex* first;
+    first = stack.front();
+    h = first->getLevel();
+    discharge(first);
+    //if(h != first->getLevel()) 
+  //}
 }
 
 int main()
 {
   parseCommandLine();
+  relabelToFront();
+  printf("%d\n", _g->getVertex(_g->getSize() + 1)->getExcess());
   return 0;
 }
