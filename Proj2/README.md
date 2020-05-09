@@ -25,4 +25,4 @@ Rumo ao 20 :muscle:
 
 # Ideias
 
-
+Se tivermos time-limit -> Culpa é do for no Push!
