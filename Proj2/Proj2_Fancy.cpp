@@ -2,6 +2,7 @@
 #include <stdlib.h>
 #include <list>
 #include <iterator>
+#include <queue>
 
 using namespace std;
 #define NIL -1
@@ -23,6 +24,7 @@ Graph* _g;
 
 class ResArch{
 private:
+  int flux,capacity;
   Vertex *originVertex;
   Vertex *destinyVertex;
 
@@ -30,21 +32,29 @@ public:
   ResArch(Vertex *origin, Vertex *destiny){
     originVertex = origin;
     destinyVertex = destiny;
+    flux=0;
+    capacity=1;
   }
   Vertex *getOriginVertex() { return originVertex; }
   Vertex *getDestinyVertex() { return destinyVertex; }
+  void setFlux(int nFlux){ flux=nFlux; }
+  int getCapacity(){ return capacity; }
 };
 
 class Vertex{
 private:
   int _id;
+  int _level;
+  int _excess;
   Type _type;
   list<ResArch *> archs;
+  list<ResArch *> back_archs;
 
 public:
   Vertex(){
     _id = NIL;
     _type = none;
+    _level=_excess=0;
   }
 
   int getId() { return _id; }
@@ -63,9 +73,19 @@ public:
   void addArch(Vertex* destiny) {
     ResArch* narch = new ResArch(this, destiny);
     archs.push_back(narch);
+    narch = new ResArch(destiny, this);
+    back_archs.push_back(narch);
   }
 
   list<ResArch *> getArch() { return archs; }
+ 
+  list<ResArch *> getBackArch() { return back_archs; }
+
+  void setExcess(int nExcess){ _excess = nExcess;}
+
+  int getExcess(){ return _excess;}
+  
+  void setHight(int hight) { return ; }
 };
 
 class Graph{
@@ -90,7 +110,13 @@ public:
 
   Vertex *getVertex(int x, int y) { return getVertex(y + (x - 1) * _avenues); }
 
+  Vertex *getSource(){ return getVertex(SOURCE_ID);}
+
+  Vertex *getVertexList(){ return _vertexes; }
+
   void addConnections();
+  
+  int getSize(){ return _numberVertexes+2; }
 
   void setOrigin_Destiny(){
     getVertex(SOURCE_ID)->setId(SOURCE_ID);
@@ -152,6 +178,7 @@ void parseCommandLine(){
 
   if (scanf("%d %d", &markets, &citizens) != 2)
     fprintf(stderr, "Scanf error\n"); //reads the second line of input
+  
   errors(aven_num, street_num, markets, citizens);
 
   _g = new Graph(aven_num, street_num);
@@ -165,6 +192,47 @@ void parseCommandLine(){
 	for(int i = 0; i < citizens; i++){       //reads the location of citizens
 		scanf("%d %d",&coordX, &coordY);
     _g->newCitizen(coordX,coordY);
+  }
+}
+
+void initializePreFlow(){
+  /*Default values of hight and excess equals 0*/
+  /*Default values of flux and capacity equals 0*/
+  Vertex* s= _g->getSource();
+  s->setHight(_g->getSize());
+
+
+  for (auto u:s->getArch()){
+    int capacity= u->getCapacity();
+
+    u->setFlux(capacity);
+    u->getDestinyVertex()->setExcess(capacity);
+    s->setExcess(s->getExcess() - capacity);
+  }
+
+  for (auto u:s->getBackArch())
+    u->setFlux(-1* u->getCapacity());
+}
+
+int checkFlow(queue<Vertex*> ver) 
+{ 
+    while (!ver.empty()){
+      if (ver.front()->getExcess() > 0)
+        return ver.front()->getExcess();
+      ver.pop();
+    } 
+    return -1; 
+} 
+
+void relabelToFront(){
+  initializePreFlow();
+  queue<Vertex *> stack;
+  for (int i = 1; i <= _g->getSize()-2; i++){
+    Vertex *u=_g->getVertex(i);
+    stack.push(u);
+  }
+  while (checkFlow()!=-1){
+    VENHO JA
   }
 }
 
