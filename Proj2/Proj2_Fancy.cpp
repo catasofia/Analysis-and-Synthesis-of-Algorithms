@@ -61,6 +61,7 @@ public:
     _id = NIL;
     _type = none;
     _level=_excess=0;
+    _ocupied = false;
     
   }
 
@@ -241,12 +242,12 @@ void initializePreFlow(){
     u->setFlux(-1* u->getCapacity());
 }
 
-int checkFlow(queue<Vertex*> ver) 
+int checkFlow(list<Vertex*> ver) 
 { 
     while (!ver.empty()){
       if (ver.front()->getExcess() > 0)
-        return ver.front()->getExcess();
-      ver.pop();
+        return ver.front()->getId();
+      ver.pop_front();
     } 
     return -1; 
 } 
@@ -254,7 +255,7 @@ int checkFlow(queue<Vertex*> ver)
 void relabel(Vertex *u){
   int minHeight = INT_MAX;
   for(ResArch *edge: u->getArch()){
-    if(edge->getCapacity() > 0 && edge->getDestinyVertex()->getLevel() < minHeight)
+    if(edge->getCapacity() > 0 && edge->getDestinyVertex()->getLevel() < minHeight && !edge->getDestinyVertex()->isOcupied())
       minHeight = edge->getDestinyVertex()->getLevel();
   }
 
@@ -262,6 +263,7 @@ void relabel(Vertex *u){
     if(edge->getCapacity() > 0 && edge->getDestinyVertex()->getLevel() < minHeight)
       minHeight = edge->getDestinyVertex()->getLevel();
   }
+  
   u->setHeight(minHeight + 1);
   u->updateLowerVertex();
 }
@@ -303,25 +305,27 @@ void discharge(Vertex *u){
       }
     }
   }
-  
 }
 
 
 void relabelToFront(){
   initializePreFlow();
-  queue<Vertex *> stack;
+  list<Vertex *> stack;
   for (int i = 1; i <= _g->getSize()-2; i++){
     Vertex *u=_g->getVertex(i);
-    stack.push(u);
+    stack.push_front(u);
   }
-  //while (checkFlow(stack)!=-1){
+  while (int id = checkFlow(stack) != -1){
     int h;
     Vertex* first;
-    first = stack.front();
+    first = _g->getVertex(id);
     h = first->getLevel();
     discharge(first);
-    //if(h != first->getLevel()) 
-  //}
+    if(h != first->getLevel()){
+      stack.remove(first);
+      stack.push_front(first);
+    }
+  }
 }
 
 int main()
