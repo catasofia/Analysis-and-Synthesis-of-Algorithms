@@ -97,7 +97,14 @@ public:
     }
   }
 
-  list<ResArch *> getLowerH(){ return lower_height; }
+  ResArch* getLowerH(){ 
+    ResArch *min = NULL;
+    for(ResArch *edge : lower_height){
+      if(min == NULL || edge->getDestinyVertex()->getLevel() < min->getDestinyVertex()->getLevel()) min = edge;
+    }
+    lower_height.remove(min);
+    return min;
+   }
 
   list<ResArch *> getArch() { return archs; }
  
@@ -213,12 +220,12 @@ void parseCommandLine(){
 
   int coordX = 0, coordY = 0;
   for(int i = 0; i < markets; i++){        //reads the location of supermarkets
-		scanf("%d %d", &coordX, &coordY);
+		if(scanf("%d %d", &coordX, &coordY) != 2);
     _g->newMarket(coordX,coordY);
 	}
 
 	for(int i = 0; i < citizens; i++){       //reads the location of citizens
-		scanf("%d %d",&coordX, &coordY);
+		if(scanf("%d %d",&coordX, &coordY) != 2);
     _g->newCitizen(coordX,coordY);
   }
 }
@@ -263,7 +270,7 @@ void relabel(Vertex *u){
     if(edge->getCapacity() > 0 && edge->getDestinyVertex()->getLevel() < minHeight)
       minHeight = edge->getDestinyVertex()->getLevel();
   }
-  
+
   u->setHeight(minHeight + 1);
   u->updateLowerVertex();
 }
@@ -284,11 +291,11 @@ void Push(ResArch *edge){
 
 void discharge(Vertex *u){
   while(u->getExcess() > 0){
-    if(u->getLowerH().empty())
+    if(u->getLowerH() == NULL)
       relabel(u);
     else{
-      ResArch *edge = u->getLowerH().front();
-      u->getLowerH().pop_front();
+      ResArch *edge = u->getLowerH();
+      //u->getLowerH().pop_front();
       if(edge->getCapacity() > 0  && !edge->getDestinyVertex()->isOcupied()){
         Push(edge);
         edge->getDestinyVertex()->changeOcupied();
