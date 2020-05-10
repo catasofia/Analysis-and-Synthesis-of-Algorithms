@@ -211,10 +211,6 @@ void errors(int aven_num,int street_num,int markets,int citizens){
     fprintf(stderr, "Minimum of avenues is 1.");
   else if (street_num < 1)
     fprintf(stderr, "Minimum of streets is 1.");
-  else if (markets < 1)
-    fprintf(stderr, "Minimum of markets is 1.");
-  else if (citizens < 1)
-    fprintf(stderr, "Minimum of citizens is 1.");
   else return;
 
   exit(1);
