@@ -122,6 +122,13 @@ public:
   void changeOcupied(){ _ocupied = !_ocupied; }
 
   bool isOcupied() { return _ocupied; }
+
+  /* void printCon(){
+    for (ResArch *edge : archs){
+      printf("%d\t%d\n", _id, edge->getDestinyVertex()->getId());
+    }
+  } */
+
 };
 
 class Graph{
@@ -183,9 +190,9 @@ void Graph::addConnections(){
     _vertexes[i].setId(i);
     if (i - _avenues > 0)
       _vertexes[i].addArch(getVertex(i - _avenues));
-    if ((i-1)%_streets != 0)
+    if ((i-1)%/* _streets */ _avenues != 0)
       _vertexes[i].addArch(getVertex(i - 1));
-    if (i% _streets != 0)
+    if (i% /* _streets */ _avenues  != 0)
       _vertexes[i].addArch(getVertex(i + 1));
     if (i + _avenues <= _numberVertexes)
       _vertexes[i].addArch(getVertex(i + _avenues));
@@ -231,10 +238,10 @@ void parseCommandLine(){
     _g->newCitizen(coordX,coordY);
   }
 
-  for (int i = 0; i <= aven_num*street_num; i++){
+  /* for (int i = 0; i <= aven_num*street_num; i++){
     for (auto x: _g->getVertex(i)->getArch())
       printf("%d-%d\n",_g->getVertex(i)->getId(), x->getDestinyVertex()->getId());
-  }
+  } */
 
 }
 
@@ -294,7 +301,7 @@ void Push(ResArch *edge){
   int d = 0;
   d = min(u->getExcess(), edge->getCapacity());
   edge->addFlux(d);
-
+  printf("%d\t%d\n", u->getId(), v->getId());
   u->setExcess(-d);
   v->setExcess(d);
 }
@@ -309,13 +316,17 @@ void discharge(Vertex *u){
       ResArch *edge = u->getLowerH();
       //printf("OK: %d %d\n", edge->getOriginVertex()->getId(), edge->getDestinyVertex()->getId());
       //u->getLowerH().pop_front();
-      if(edge->getCapacity() > 0  && !edge->getDestinyVertex()->isOcupied()){
+      //if(edge->getDestinyVertex()->isOcupied()) printf("estou ocupado.\n");
+      
+      if(edge->getCapacity() > 0 && !edge->getDestinyVertex()->isOcupied()){
         Push(edge);
         edge->getDestinyVertex()->changeOcupied();
+        //if(edge->getDestinyVertex()->isOcupied()) printf("estou ocupado.2\n");
         for(ResArch *aux: u->getBackArch()){
           if(aux->getOriginVertex() == edge->getDestinyVertex()) aux->resetFlux();
         }
       }
+      
       else if(edge->getCapacity() > 0  && edge->getDestinyVertex()->isOcupied()){
         Push(edge);
         edge->getOriginVertex()->changeOcupied();
@@ -344,9 +355,9 @@ void relabelToFront(){
     //printf("%d!", id);
     first = _g->getVertex(id);
     h = first->getLevel();
-    for(int i=0;i<_g->getSize();i++)
+    /* for(int i=0;i<_g->getSize();i++)
       printf("%d // %d // %d\n", _g->getVertex(i)->getId(), _g->getVertex(i)->getExcess(), _g->getVertex(i)->getLevel());
-    
+     */
    //break;
     discharge(first);
     //printf("%d\n", _g->getVertex(_g->getSize()-1)->getExcess());
@@ -357,15 +368,14 @@ void relabelToFront(){
     }
   id = checkFlow(stack);
   }
-  for(int i=0;i<_g->getSize();i++)
+ /*  for(int i=0;i<_g->getSize();i++)
       printf("%d // %d // %d\n", _g->getVertex(i)->getId(), _g->getVertex(i)->getExcess(), _g->getVertex(i)->getLevel());
-    
+     */
 }
 
 int main()
 {
   parseCommandLine();
-  
   relabelToFront();
   printf("%d\n", _g->getVertex(_g->getSize()-1)->getExcess());
   return 0;
