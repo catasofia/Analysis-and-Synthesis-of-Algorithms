@@ -38,9 +38,8 @@ public:
   }
   Vertex *getOriginVertex() { return originVertex; }
   Vertex *getDestinyVertex() { return destinyVertex; }
-  void setFlux(int nFlux){ flux += nFlux; }
+  void addFlux(int nFlux){ flux += nFlux; }
   void resetFlux() {flux = 0;}
-  void setCapacity(int nCap) { capacity = nCap; }
   int getCapacity(){ return capacity; }
 };
 
@@ -62,7 +61,6 @@ public:
     _type = none;
     _level=_excess=0;
     _ocupied = false;
-    
   }
 
   int getId() { return _id; }
@@ -72,15 +70,14 @@ public:
   void setId(int id) { _id = id; }
 
   void setType(Type ntype) {
-    if (_type==none)
-      _type = ntype;
-    else
-      _type = both;
+    if (_type==none)  _type = ntype;
+    else  _type = both;
   }
 
   void addArch(Vertex* destiny) {
     ResArch* narch = new ResArch(this, destiny);
     archs.push_back(narch);
+    lower_height.push_back(narch);
     narch = new ResArch(destiny, this);
     back_archs.push_back(narch);
   }
@@ -97,23 +94,27 @@ public:
     }
   }
 
-  ResArch* getLowerH(){ 
-    ResArch *min = NULL;
+  ResArch* getLowerH(){
+    ResArch *minEdge = NULL;
     for(ResArch *edge : lower_height){
-      if(min == NULL || edge->getDestinyVertex()->getLevel() < min->getDestinyVertex()->getLevel()) min = edge;
+      int min = edge->getOriginVertex()->getLevel();
+      if(edge->getDestinyVertex()->getLevel() < min ){
+        //printf("%d\t%d\n", edge->getDestinyVertex()->getId(),edge->getDestinyVertex()->getLevel());
+        minEdge = edge;
+        min = edge->getDestinyVertex()->getLevel();
+      }
     }
-    lower_height.remove(min);
-    return min;
+    return minEdge;
    }
 
   list<ResArch *> getArch() { return archs; }
- 
+
   list<ResArch *> getBackArch() { return back_archs; }
 
   void setExcess(int nExcess){ _excess += nExcess;}
 
   int getExcess(){ return _excess;}
-  
+
   void setHeight(int height) { _level = height; }
 
   int getLevel(){ return _level; }
@@ -135,6 +136,9 @@ public:
     _numberVertexes = avenues * streets;
 
     _vertexes = new Vertex[_numberVertexes+1];
+
+    DESTINY_ID = _numberVertexes+1;
+
     addConnections();
     setOrigin_Destiny();
   }
@@ -143,14 +147,14 @@ public:
 
   Vertex *getVertex(int id) { return &_vertexes[id]; }
 
-  Vertex *getVertex(int x, int y) { return getVertex(y + (x - 1) * _avenues); }
+  Vertex *getVertex(int x, int y) { return getVertex(x + (y - 1) * _avenues); }
 
   Vertex *getSource(){ return getVertex(SOURCE_ID);}
 
   Vertex *getVertexList(){ return _vertexes; }
 
   void addConnections();
-  
+
   int getSize(){ return _numberVertexes+2; }
 
   void setOrigin_Destiny(){
@@ -170,23 +174,21 @@ public:
     Vertex* aux = getVertex(x,y);
     aux->setType(citizen);
     s->addArch(aux);
-    aux->addArch(s);
+    //aux->addArch(s);
   }
 };
 
 void Graph::addConnections(){
   for (int i = 1; i <= _numberVertexes; i++){
-    _vertexes[i].setId(i+1);
-    if (i - _avenues >= 0)
-      _vertexes[i].addArch(&_vertexes[i - _avenues]);
-    if ((i)% _avenues != 0 && (i)% _streets != 0)
-      _vertexes[i].addArch(&_vertexes[i - 1]);
-
-    if ((i+1)%_streets != 0 && (i+1)%_avenues != 0)
-      _vertexes[i].addArch(&_vertexes[i + 1]);
-
-    if (i + _avenues <= _numberVertexes - 1)
-      _vertexes[i].addArch(&_vertexes[i + _avenues]);
+    _vertexes[i].setId(i);
+    if (i - _avenues > 0)
+      _vertexes[i].addArch(getVertex(i - _avenues));
+    if ((i-1)%_streets != 0)
+      _vertexes[i].addArch(getVertex(i - 1));
+    if (i% _streets != 0)
+      _vertexes[i].addArch(getVertex(i + 1));
+    if (i + _avenues <= _numberVertexes)
+      _vertexes[i].addArch(getVertex(i + _avenues));
   }
 }
 
@@ -213,7 +215,7 @@ void parseCommandLine(){
 
   if (scanf("%d %d", &markets, &citizens) != 2)
     fprintf(stderr, "Scanf error\n"); //reads the second line of input
-  
+
   errors(aven_num, street_num, markets, citizens);
 
   _g = new Graph(aven_num, street_num);
@@ -228,6 +230,12 @@ void parseCommandLine(){
 		if(scanf("%d %d",&coordX, &coordY) != 2);
     _g->newCitizen(coordX,coordY);
   }
+
+  for (int i = 0; i <= aven_num*street_num; i++){
+    for (auto x: _g->getVertex(i)->getArch())
+      printf("%d-%d\n",_g->getVertex(i)->getId(), x->getDestinyVertex()->getId());
+  }
+
 }
 
 void initializePreFlow(){
@@ -236,38 +244,42 @@ void initializePreFlow(){
   Vertex* s= _g->getSource();
   s->setHeight(_g->getSize());
 
-
+  
   for (auto u:s->getArch()){
     int capacity= u->getCapacity();
-
-    u->setFlux(capacity);
+    //printf("%dd%ddd\n", u->getOriginVertex()->getId(), u->getDestinyVertex()->getId());
+    u->addFlux(capacity);
     u->getDestinyVertex()->setExcess(capacity);
     s->setExcess(-capacity);
   }
 
   for (auto u:s->getBackArch())
-    u->setFlux(-1* u->getCapacity());
+    u->addFlux(-1* u->getCapacity());
+
+//printf("%d\n", _g->getSource()->getExcess());
+
 }
 
-int checkFlow(list<Vertex*> ver) 
-{ 
+int checkFlow(list<Vertex*> ver) {
     while (!ver.empty()){
-      if (ver.front()->getExcess() > 0)
+      //printf("%d\n", ver.front()->getExcess());
+      if (ver.front()->getExcess() > 0){
         return ver.front()->getId();
+      }
       ver.pop_front();
-    } 
-    return -1; 
-} 
+    }
+    return -1;
+}
 
 void relabel(Vertex *u){
-  int minHeight = INT_MAX;
+  int minHeight = u->getLevel();
   for(ResArch *edge: u->getArch()){
     if(edge->getCapacity() > 0 && edge->getDestinyVertex()->getLevel() < minHeight && !edge->getDestinyVertex()->isOcupied())
       minHeight = edge->getDestinyVertex()->getLevel();
   }
 
   for(ResArch *edge: u->getBackArch()){
-    if(edge->getCapacity() > 0 && edge->getDestinyVertex()->getLevel() < minHeight)
+    if(edge->getCapacity() > 0 && edge->getDestinyVertex()->getLevel() < minHeight && edge->getDestinyVertex()->isOcupied())
       minHeight = edge->getDestinyVertex()->getLevel();
   }
 
@@ -281,20 +293,21 @@ void Push(ResArch *edge){
   Vertex *v = edge->getDestinyVertex();
   int d = 0;
   d = min(u->getExcess(), edge->getCapacity());
-  edge->setFlux(d);
+  edge->addFlux(d);
 
   u->setExcess(-d);
   v->setExcess(d);
-
 }
 
 
 void discharge(Vertex *u){
   while(u->getExcess() > 0){
-    if(u->getLowerH() == NULL)
+    if(u->getLowerH() == NULL){
       relabel(u);
+    }
     else{
       ResArch *edge = u->getLowerH();
+      //printf("OK: %d %d\n", edge->getOriginVertex()->getId(), edge->getDestinyVertex()->getId());
       //u->getLowerH().pop_front();
       if(edge->getCapacity() > 0  && !edge->getDestinyVertex()->isOcupied()){
         Push(edge);
@@ -308,7 +321,7 @@ void discharge(Vertex *u){
         edge->getOriginVertex()->changeOcupied();
         for(ResArch *aux: u->getArch()){
           if(aux->getDestinyVertex() == edge->getOriginVertex()) aux->resetFlux();
-        } 
+        }
       }
     }
   }
@@ -316,29 +329,44 @@ void discharge(Vertex *u){
 
 
 void relabelToFront(){
-  initializePreFlow();
   list<Vertex *> stack;
+  initializePreFlow();
+
   for (int i = 1; i <= _g->getSize()-2; i++){
     Vertex *u=_g->getVertex(i);
-    stack.push_front(u);
+    stack.push_back(u);
+    //printf("%d\n", stack.back()->getId());
   }
-  while (int id = checkFlow(stack) != -1){
+  int id = checkFlow(stack);
+  while (id != -1){
     int h;
     Vertex* first;
+    //printf("%d!", id);
     first = _g->getVertex(id);
     h = first->getLevel();
+    for(int i=0;i<_g->getSize();i++)
+      printf("%d // %d // %d\n", _g->getVertex(i)->getId(), _g->getVertex(i)->getExcess(), _g->getVertex(i)->getLevel());
+    
+   //break;
     discharge(first);
+    //printf("%d\n", _g->getVertex(_g->getSize()-1)->getExcess());
+    //printf("%d\t%d\n", h, first->getLevel());
     if(h != first->getLevel()){
       stack.remove(first);
       stack.push_front(first);
     }
+  id = checkFlow(stack);
   }
+  for(int i=0;i<_g->getSize();i++)
+      printf("%d // %d // %d\n", _g->getVertex(i)->getId(), _g->getVertex(i)->getExcess(), _g->getVertex(i)->getLevel());
+    
 }
 
 int main()
 {
   parseCommandLine();
+  
   relabelToFront();
-  printf("%d\n", _g->getVertex(_g->getSize() + 1)->getExcess());
+  printf("%d\n", _g->getVertex(_g->getSize()-1)->getExcess());
   return 0;
 }
