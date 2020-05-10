@@ -123,6 +123,13 @@ public:
 
   bool isOcupied() { return _ocupied; }
 
+  bool inBackEdges(ResArch *edge){
+    for (ResArch *temp : back_archs){
+      if (temp == edge) return true;
+    }
+    return false;
+  }
+
   /* void printCon(){
     for (ResArch *edge : archs){
       printf("%d\t%d\n", _id, edge->getDestinyVertex()->getId());
@@ -301,7 +308,7 @@ void Push(ResArch *edge){
   int d = 0;
   d = min(u->getExcess(), edge->getCapacity());
   edge->addFlux(d);
-  printf("%d\t%d\n", u->getId(), v->getId());
+  printf("%d\t%d\t%d\n", u->getId(), v->getId(), v->isOcupied());
   u->setExcess(-d);
   v->setExcess(d);
 }
@@ -313,9 +320,12 @@ void discharge(Vertex *u){
       relabel(u);
     }
     else{
+      printf("preso aqui");
       ResArch *edge = u->getLowerH();
+      
       //printf("OK: %d %d\n", edge->getOriginVertex()->getId(), edge->getDestinyVertex()->getId());
       //u->getLowerH().pop_front();
+      
       //if(edge->getDestinyVertex()->isOcupied()) printf("estou ocupado.\n");
       
       if(edge->getCapacity() > 0 && !edge->getDestinyVertex()->isOcupied()){
@@ -327,7 +337,7 @@ void discharge(Vertex *u){
         }
       }
       
-      else if(edge->getCapacity() > 0  && edge->getDestinyVertex()->isOcupied()){
+      else if(edge->getCapacity() > 0  && edge->getDestinyVertex()->isOcupied() && u->inBackEdges(edge)){   //ESTÁ PRESO POR CAUSA DA ÚLTIMA CONDIÇÃO DO ELSE IF
         Push(edge);
         edge->getOriginVertex()->changeOcupied();
         for(ResArch *aux: u->getArch()){
@@ -367,6 +377,7 @@ void relabelToFront(){
       stack.push_front(first);
     }
   id = checkFlow(stack);
+  printf("depois do check\n");
   }
  /*  for(int i=0;i<_g->getSize();i++)
       printf("%d // %d // %d\n", _g->getVertex(i)->getId(), _g->getVertex(i)->getExcess(), _g->getVertex(i)->getLevel());
