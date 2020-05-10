@@ -337,13 +337,18 @@ void discharge(Vertex *u){
         }
       }
       
-      else if(edge->getCapacity() > 0  && edge->getDestinyVertex()->isOcupied() && u->inBackEdges(edge)){   //ESTÁ PRESO POR CAUSA DA ÚLTIMA CONDIÇÃO DO ELSE IF
+      else if(edge->getCapacity() > 0  && edge->getDestinyVertex()->isOcupied() /* && u->inBackEdges(edge) */){   //ESTÁ PRESO POR CAUSA DA ÚLTIMA CONDIÇÃO DO ELSE IF
         Push(edge);
         edge->getOriginVertex()->changeOcupied();
         for(ResArch *aux: u->getArch()){
           if(aux->getDestinyVertex() == edge->getOriginVertex()) aux->resetFlux();
         }
       }
+      /* else{
+        for(ResArch *aux: edge->getDestinyVertex()->getBackArch()){
+          if(aux->getDestinyVertex() == edge->getOriginVertex()) Push(aux);
+        }
+      } */
     }
   }
 }
