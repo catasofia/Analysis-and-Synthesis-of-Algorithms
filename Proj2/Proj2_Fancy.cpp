@@ -38,9 +38,12 @@ public:
   }
   Vertex *getOriginVertex() { return originVertex; }
   Vertex *getDestinyVertex() { return destinyVertex; }
-  void addFlux(int nFlux){ flux += nFlux; }
+  void addFlux(int nFlux){ 
+    if(flux + nFlux <= 1) flux += nFlux; 
+  }
   void resetFlux() {flux = 0;}
   int getCapacity(){ return capacity; }
+  void setCapacity(int c) { capacity = c; }
 };
 
 class Vertex{
@@ -306,6 +309,8 @@ void Push(ResArch *edge){
   edge->addFlux(d);
   u->setExcess(-d);
   v->setExcess(d);
+
+  printf("%d -> %d\n", u->getId(), v->getId());
 }
 
 
@@ -316,12 +321,12 @@ void discharge(Vertex *u){
     }
     else{
       ResArch *edge = u->getLowerH();
-      
       if(edge->getCapacity() > 0 && !edge->getDestinyVertex()->isOcupied()){
         Push(edge);
         edge->getDestinyVertex()->changeOcupied();
         for(ResArch *aux: u->getBackArch()){
           if(aux->getOriginVertex() == edge->getDestinyVertex()) aux->resetFlux();
+          printf("aqui1");
         }
       }
       
@@ -329,7 +334,10 @@ void discharge(Vertex *u){
         Push(edge);
         edge->getOriginVertex()->changeOcupied();
         for(ResArch *aux: u->getArch()){
-          if(aux->getDestinyVertex() == edge->getOriginVertex()) aux->resetFlux();
+          if(aux->getDestinyVertex() == edge->getOriginVertex()){ 
+            aux->resetFlux();
+            //printf("%d\t%d\n", aux->getOriginVertex()->getId(), aux->getDestinyVertex()->getId());
+            }
         }
       }
     }
