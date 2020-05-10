@@ -308,7 +308,6 @@ void Push(ResArch *edge){
   int d = 0;
   d = min(u->getExcess(), edge->getCapacity());
   edge->addFlux(d);
-  printf("%d\t%d\t%d\n", u->getId(), v->getId(), v->isOcupied());
   u->setExcess(-d);
   v->setExcess(d);
 }
@@ -320,18 +319,11 @@ void discharge(Vertex *u){
       relabel(u);
     }
     else{
-      printf("preso aqui");
       ResArch *edge = u->getLowerH();
-      
-      //printf("OK: %d %d\n", edge->getOriginVertex()->getId(), edge->getDestinyVertex()->getId());
-      //u->getLowerH().pop_front();
-      
-      //if(edge->getDestinyVertex()->isOcupied()) printf("estou ocupado.\n");
       
       if(edge->getCapacity() > 0 && !edge->getDestinyVertex()->isOcupied()){
         Push(edge);
         edge->getDestinyVertex()->changeOcupied();
-        //if(edge->getDestinyVertex()->isOcupied()) printf("estou ocupado.2\n");
         for(ResArch *aux: u->getBackArch()){
           if(aux->getOriginVertex() == edge->getDestinyVertex()) aux->resetFlux();
         }
@@ -344,11 +336,6 @@ void discharge(Vertex *u){
           if(aux->getDestinyVertex() == edge->getOriginVertex()) aux->resetFlux();
         }
       }
-      /* else{
-        for(ResArch *aux: edge->getDestinyVertex()->getBackArch()){
-          if(aux->getDestinyVertex() == edge->getOriginVertex()) Push(aux);
-        }
-      } */
     }
   }
 }
@@ -361,32 +348,23 @@ void relabelToFront(){
   for (int i = 1; i <= _g->getSize()-2; i++){
     Vertex *u=_g->getVertex(i);
     stack.push_back(u);
-    //printf("%d\n", stack.back()->getId());
   }
   int id = checkFlow(stack);
   while (id != -1){
     int h;
     Vertex* first;
-    //printf("%d!", id);
+
     first = _g->getVertex(id);
     h = first->getLevel();
-    /* for(int i=0;i<_g->getSize();i++)
-      printf("%d // %d // %d\n", _g->getVertex(i)->getId(), _g->getVertex(i)->getExcess(), _g->getVertex(i)->getLevel());
-     */
-   //break;
+
     discharge(first);
-    //printf("%d\n", _g->getVertex(_g->getSize()-1)->getExcess());
-    //printf("%d\t%d\n", h, first->getLevel());
+
     if(h != first->getLevel()){
       stack.remove(first);
       stack.push_front(first);
     }
   id = checkFlow(stack);
-  printf("depois do check\n");
   }
- /*  for(int i=0;i<_g->getSize();i++)
-      printf("%d // %d // %d\n", _g->getVertex(i)->getId(), _g->getVertex(i)->getExcess(), _g->getVertex(i)->getLevel());
-     */
 }
 
 int main()
