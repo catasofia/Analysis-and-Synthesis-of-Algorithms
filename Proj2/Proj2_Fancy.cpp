@@ -38,8 +38,8 @@ public:
   }
   Vertex *getOriginVertex() { return originVertex; }
   Vertex *getDestinyVertex() { return destinyVertex; }
-  void addFlux(int nFlux){ 
-    if(flux + nFlux <= 1) flux += nFlux; 
+  void addFlux(int nFlux){
+    if(flux + nFlux <= 1) flux += nFlux;
   }
   void resetFlux() {flux = 0;}
   int getCapacity(){ return capacity; }
@@ -257,7 +257,7 @@ void initializePreFlow(){
   Vertex* s= _g->getSource();
   s->setHeight(_g->getSize());
 
-  
+
   for (auto u:s->getArch()){
     int capacity= u->getCapacity();
     //printf("%dd%ddd\n", u->getOriginVertex()->getId(), u->getDestinyVertex()->getId());
@@ -329,12 +329,12 @@ void discharge(Vertex *u){
           printf("aqui1");
         }
       }
-      
+
       else if(edge->getCapacity() > 0  && edge->getDestinyVertex()->isOcupied() /* && u->inBackEdges(edge) */){   //ESTÁ PRESO POR CAUSA DA ÚLTIMA CONDIÇÃO DO ELSE IF
         Push(edge);
         edge->getOriginVertex()->changeOcupied();
         for(ResArch *aux: u->getArch()){
-          if(aux->getDestinyVertex() == edge->getOriginVertex()){ 
+          if(aux->getDestinyVertex() == edge->getOriginVertex()){
             aux->resetFlux();
             //printf("%d\t%d\n", aux->getOriginVertex()->getId(), aux->getDestinyVertex()->getId());
             }
