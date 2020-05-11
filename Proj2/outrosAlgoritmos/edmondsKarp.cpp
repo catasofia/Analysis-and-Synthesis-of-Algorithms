@@ -37,7 +37,7 @@ list<ResArch *> BFS(){
       if(edge->getDestinyVertex() == t) break;
     }
 
-    if(!t->isVisited()) return path;   //aqui, retornar true?? Don't know
+    if(!t->isVisited()) return path;  
 
     //a partir do t vai fazer backtrack até até chegar ao s, que não tem pai
     //e vai adicionar os arcos ao caminho
