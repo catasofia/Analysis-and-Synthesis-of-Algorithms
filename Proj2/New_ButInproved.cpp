@@ -220,11 +220,11 @@ list<ResArch *> BFS(){
   list<Vertex *> queue; //fila de vértices a percorrer;
   list<ResArch *> path;  //lista com o caminho mais curto;
   
-  /* for(int i = 0; i < _g->getSize(); i++){
+  for(int i = 0; i < _g->getSize(); i++){
      _g->getNode(i)->setNodeFalse(); 
      _g->getNode(i)->setParent(NULL);
      _g->getNode(i)->setParentEdge(NULL); 
-  } */
+  } 
 
   Vertex *s = _g->getSource();   
   Vertex *t = _g->getDestiny();
@@ -266,14 +266,15 @@ list<ResArch *> BFS(){
   //a partir do t vai fazer backtrack até até chegar ao s, que não tem pai
   //e vai adicionar os arcos ao caminho
   else{
-    Vertex *aux = t, *auxi;
-    while(aux->getParent() == _g->getSource()){
+    Vertex *aux = t/* , *auxi */;
+    while(aux->getParent() != _g->getSource()){
       path.push_front(aux->getParentEdge());
-      auxi = aux->getParent();
+      aux = aux->getParent();
+      /* auxi = aux->getParent();
       aux->setFalse();
       aux->setParent(NULL);
       aux->setParentEdge(NULL);
-      aux=auxi;
+      aux=auxi; */
     }
     return path;
   }   
