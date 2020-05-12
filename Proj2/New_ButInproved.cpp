@@ -7,29 +7,31 @@
 using namespace std;
 #define NIL -1
 
-enum Type{
-  none, supermarket, citizen, both
-};
 
 /*  Pre-load Class's*/
-class Graph;
 class Vertex;
+class Node;
+class Graph;
 class ResArch;
+
+
 
 /*  Global Variables  */
 Graph* _g;
+int numNodes=0;
 
 class ResArch{
 private:
   int flux = 0;
-  int capacity = 1;
   Vertex *originVertex;
   Vertex *destinyVertex;
+  int _capacity;
 
 public:
-  ResArch(Vertex *origin, Vertex *destiny){
+  ResArch(Vertex *origin, Vertex *destiny, int cap){
     originVertex = origin;
     destinyVertex = destiny;
+    _capacity = cap;
   }
   
   Vertex *getOriginVertex() { return originVertex; }
@@ -37,35 +39,21 @@ public:
   void addFlux(){ flux = 1; }
   void resetFlux() { flux = 0; }
   int getFlux() { return flux; }
+  void setCapacity(int c) {_capacity = c;}
+  int getCapacity(){ return _capacity; }
 };
 
 
 class Vertex{
 private:
-  int _id;
-  Type _type;
   list<ResArch *> archs;
-  list<ResArch *> backArchs;
   bool _visited;
   Vertex* _parent;
   ResArch *_parentEdge;
 
 public:
   Vertex(){
-    _id = NIL;
-    _type = none;
     _parent = NULL;
-  }
-
-  int getId() { return _id; }
-
-  Type getType() { return _type; }
-
-  void setId(int id) { _id = id; }
-
-  void setType(Type ntype) {
-    if (_type==none)  _type = ntype;
-    else  _type = both;
   }
 
   void setParentEdge(ResArch *edge){ _parentEdge = edge; }
@@ -77,6 +65,12 @@ public:
   void setParent(Vertex *v){
     _parent = v;
   }
+  
+  void addArch(Vertex *destiny, int cap) {
+    archs.push_back(new ResArch(this, destiny,cap));
+  }
+  
+  list<ResArch *> getArchs() { return archs; }
 
   void setVisited(){ _visited = true; }
 
@@ -84,76 +78,128 @@ public:
 
   void setFalse() { _visited=false; }
 
-  void addArch(Vertex* destiny) {
-    archs.push_back(new ResArch(this, destiny));
+};
+
+
+class Node{
+private:
+  int _id;
+  Vertex* Vin;
+  Vertex* Vout;
+  ResArch* edgeBetween;
+public:
+  Node(){
+    _id = numNodes++ ;
+    Vin = new Vertex();
+    Vout = new Vertex();
+    Vout->setParent(Vin);
+    edgeBetween = new ResArch(Vin, Vout, 1);
+    Vout->setParentEdge(edgeBetween);
+  }
+  
+  int getId() { return _id; }
+
+  void setId(int id) { _id = id; }
+  
+  Vertex* getIn(){ return Vin; }
+  
+  Vertex* getOut(){ return Vout; }
+  
+  void addEdges(Node* DestinyNode) {
+    Vout->addArch(DestinyNode->getIn(),1);
+    DestinyNode->getIn()->addArch(Vout,0);
   }
 
-  list<ResArch *> getArchs() { return archs; }
+  void addtoDestiny(Vertex* Destiny) {
+    Vout->addArch(Destiny,1);
+  }
 
+  void setParent(Vertex *u){
+    Vin->setParent(u);
+  }
+
+  void setParentEdge(ResArch *edge){
+    Vin->setParentEdge(edge);
+  }
+
+  void setNodeFalse(){
+    Vin->setFalse();
+    Vout->setFalse();
+  }
+
+  void printCone(){
+    printf("%d", _id);
+  }
 };
+
 
 class Graph{
 private:
-  int _avenues, _streets, _numberVertexes;
-  const int SOURCE_ID=0;
-  int DESTINY_ID;
-  Vertex *_vertexes;
+  int _avenues, _streets, _numberNodes;
+  Vertex* Source;
+  Vertex* Destiny;
+  Node *_nodes;
 
 public:
   Graph(int avenues, int streets){
     _avenues = avenues;
     _streets = streets;
-    _numberVertexes = avenues * streets;
-    DESTINY_ID = _numberVertexes+1;
-    _vertexes = new Vertex[_numberVertexes+1];
+    _numberNodes = avenues * streets;
+    
+    Source = new Vertex();
+    Destiny = new Vertex();
+    
+    _nodes = new Node[_numberNodes];
     addConnections();
   }
 
-  ~Graph() { delete _vertexes; }
+  ~Graph() { delete _nodes; }
+  
+  Node *getNode(int id) { return &_nodes[id]; }
 
-  Vertex *getVertex(int id) { return &_vertexes[id]; }
+  Node *getNode(int x, int y) { return getNode((x-1) + (y-1) * _avenues); }
 
-  Vertex *getVertex(int x, int y) { return getVertex(x + (y - 1) * _avenues); }
+  Vertex *getSource(){ return Source;}
 
-  Vertex *getSource(){ return getVertex(SOURCE_ID);}
+  Vertex *getDestiny(){ return Destiny;}
 
-  Vertex *getDestiny(){ return getVertex(DESTINY_ID);}
-
-  int getSize(){ return _numberVertexes; }
+  int getSize(){ return _numberNodes; }
 
   void addConnections();
 
-  void setOrigin_Destiny(){
-    getVertex(SOURCE_ID)->setId(SOURCE_ID);
-    getVertex(DESTINY_ID)->setId(DESTINY_ID);
-  }
-
   void newMarket(int x, int y){
-    Vertex* t = getVertex(DESTINY_ID);
-    Vertex* aux = getVertex(x,y);
-    aux->setType(supermarket);
-    aux->addArch(t);
+    Vertex* t = getDestiny();
+    Node* aux = getNode(x,y);
+    aux->addtoDestiny(t);
   }
 
   void newCitizen(int x, int y){
-    Vertex* s = getVertex(SOURCE_ID);
-    Vertex* aux = getVertex(x,y);
-    aux->setType(citizen);
-    s->addArch(aux);
+    Vertex* s = getSource();
+    Node* aux = getNode(x,y);
+    s->addArch(aux->getIn(),1);
   }
 };
 
 void Graph::addConnections(){
-  for (int i = 1; i <= _numberVertexes; i++){
-    _vertexes[i].setId(i);
-    if (i - _avenues > 0)
-      _vertexes[i].addArch(getVertex(i - _avenues));
-    if ((i-1)%/* _streets */ _avenues != 0)
-      _vertexes[i].addArch(getVertex(i - 1));
-    if (i% /* _streets */ _avenues  != 0)
-      _vertexes[i].addArch(getVertex(i + 1));
-    if (i + _avenues <= _numberVertexes)
-      _vertexes[i].addArch(getVertex(i + _avenues));
+  for (int i = 0; i < _numberNodes; i++){
+    printf("%d\n", _nodes[i].getId());
+    //_nodes[i].setId(i+1);
+    if (i - _avenues > -1){
+      puts("primeiro");
+      _nodes[i].addEdges(getNode(i - _avenues));
+    }
+    if (i%_avenues != 0){
+      puts("segundo");
+      _nodes[i].addEdges(getNode(i - 1));
+    }
+    if ((i+1)%(_avenues)  != 0){
+      puts("terceiro");
+      _nodes[i].addEdges(getNode(i + 1));
+    }
+    if (i + _avenues < _numberNodes){
+      puts("quarto"); 
+      _nodes[i].addEdges(getNode(i + _avenues));
+    }
   }
 }
 
@@ -161,10 +207,18 @@ list<ResArch *> BFS(){
   list<Vertex *> queue; //fila de vértices a percorrer;
   list<ResArch *> path;  //lista com o caminho mais curto;
   
-  for(int i = 0; i < _g->getSize() + 2; i++) _g->getVertex(i)->setFalse(); 
+  for(int i = 0; i < _g->getSize(); i++){
+     _g->getNode(i)->setNodeFalse(); 
+     _g->getNode(i)->setParent(NULL);
+     _g->getNode(i)->setParentEdge(NULL); 
+  }
 
   Vertex *s = _g->getSource();   
   Vertex *t = _g->getDestiny();
+
+  t->setFalse();
+  t->setParent(NULL);
+  t->setParentEdge(NULL);
   
   s->setVisited();
   queue.push_back(s); 
@@ -176,12 +230,14 @@ list<ResArch *> BFS(){
     queue.pop_front();
     
     for(ResArch *edge : aux->getArchs()){
-      if(!edge->getDestinyVertex()->isVisited() && edge->getFlux() == 0){
+      if(!edge->getDestinyVertex()->isVisited() && edge->getCapacity() == 1 && edge->getFlux() == 0 ){
+
         queue.push_back(edge->getDestinyVertex());
         edge->getDestinyVertex()->setVisited();
         edge->getDestinyVertex()->setParent(aux);
-        edge->getDestinyVertex()->setParentEdge(edge);
+        edge->getDestinyVertex()->setParentEdge(edge);  
       }
+      
       if(edge->getDestinyVertex() == t) break;
     }
 
@@ -211,8 +267,14 @@ int EdmondsKarp(){
     
     if(!path.empty()){
       max_flow += 1;
-      for(ResArch *edge : path)
+      for(ResArch *edge : path){
         edge->addFlux();
+        Vertex *orig = edge->getOriginVertex();
+        Vertex *dest = edge->getDestinyVertex();
+        for (ResArch *aux : dest->getArchs()){
+          if(aux->getDestinyVertex() == orig) aux->setCapacity(1);
+        }
+      }
     }
     else break;
   }
@@ -243,6 +305,7 @@ void parseCommandLine(){
   errors(aven_num, street_num);
 
   _g = new Graph(aven_num, street_num);
+  puts("after cone");
 
   int coordX = 0, coordY = 0;
   for(int i = 0; i < markets; i++){        //reads the location of supermarkets
@@ -255,11 +318,17 @@ void parseCommandLine(){
     _g->newCitizen(coordX,coordY);
   }
 
-}
+  /* for(int i = 1; i <= _g->getSize(); i++){
+    _g->getNode(i)->printCone();
+  }*/
+} 
 
 
 int main(){
   parseCommandLine();
+
+
+
   printf("%d\n", EdmondsKarp());
   return 0;
 }
