@@ -26,12 +26,14 @@ private:
   Vertex *originVertex;
   Vertex *destinyVertex;
   int _capacity;
+  bool changed;
 
 public:
   ResArch(Vertex *origin, Vertex *destiny, int cap){
     originVertex = origin;
     destinyVertex = destiny;
     _capacity = cap;
+    changed = false;
   }
   
   Vertex *getOriginVertex() { return originVertex; }
@@ -41,6 +43,16 @@ public:
   int getFlux() { return flux; }
   void setCapacity(int c) {_capacity = c;}
   int getCapacity(){ return _capacity; }
+  /*void setBack(){
+    if(!changed){
+      getDestinyVertex()->addArch(getOriginVertex(), 1)
+      getOriginVertex()->getArchs().remove(this);
+      changed = true;
+    }
+    else{
+      getOriginVertex()->getArchs().remove(this);
+    }
+  }*/
 };
 
 
@@ -208,11 +220,11 @@ list<ResArch *> BFS(){
   list<Vertex *> queue; //fila de vértices a percorrer;
   list<ResArch *> path;  //lista com o caminho mais curto;
   
-  for(int i = 0; i < _g->getSize(); i++){
+  /* for(int i = 0; i < _g->getSize(); i++){
      _g->getNode(i)->setNodeFalse(); 
      _g->getNode(i)->setParent(NULL);
      _g->getNode(i)->setParentEdge(NULL); 
-  }
+  } */
 
   Vertex *s = _g->getSource();   
   Vertex *t = _g->getDestiny();
@@ -254,10 +266,14 @@ list<ResArch *> BFS(){
   //a partir do t vai fazer backtrack até até chegar ao s, que não tem pai
   //e vai adicionar os arcos ao caminho
   else{
-    Vertex *aux = t;
-    while(aux->getParent() != NULL){
+    Vertex *aux = t, *auxi;
+    while(aux->getParent() == _g->getSource()){
       path.push_front(aux->getParentEdge());
-      aux = aux->getParent();
+      auxi = aux->getParent();
+      aux->setFalse();
+      aux->setParent(NULL);
+      aux->setParentEdge(NULL);
+      aux=auxi;
     }
     return path;
   }   
@@ -279,9 +295,12 @@ int EdmondsKarp(){
       //puts("caminho\n");
       max_flow += 1;
       for(ResArch *edge : path){
-        edge->addFlux();
+        edge->addFlux(); /*A->B*/ /*B->A*/
+
         Vertex *orig = edge->getOriginVertex();
         Vertex *dest = edge->getDestinyVertex();
+
+        //edge->setBack();
         for (ResArch *aux : dest->getArchs()){
           if(aux->getDestinyVertex() == orig) aux->setCapacity(1);
         }
