@@ -92,6 +92,7 @@ public:
     _id = numNodes++ ;
     Vin = new Vertex();
     Vout = new Vertex();
+    Vin->addArch(Vout, 1);
     Vout->setParent(Vin);
     edgeBetween = new ResArch(Vin, Vout, 1);
     Vout->setParentEdge(edgeBetween);
@@ -127,9 +128,9 @@ public:
     Vout->setFalse();
   }
 
-  void printCone(){
+  /* void printCone(){
     printf("%d", _id);
-  }
+  } */
 };
 
 
@@ -182,22 +183,22 @@ public:
 
 void Graph::addConnections(){
   for (int i = 0; i < _numberNodes; i++){
-    printf("%d\n", _nodes[i].getId());
+    //printf("%d\n", _nodes[i].getId());
     //_nodes[i].setId(i+1);
     if (i - _avenues > -1){
-      puts("primeiro");
+      //puts("primeiro");
       _nodes[i].addEdges(getNode(i - _avenues));
     }
     if (i%_avenues != 0){
-      puts("segundo");
+      //puts("segundo");
       _nodes[i].addEdges(getNode(i - 1));
     }
     if ((i+1)%(_avenues)  != 0){
-      puts("terceiro");
+      //puts("terceiro");
       _nodes[i].addEdges(getNode(i + 1));
     }
     if (i + _avenues < _numberNodes){
-      puts("quarto"); 
+      //puts("quarto"); 
       _nodes[i].addEdges(getNode(i + _avenues));
     }
   }
@@ -228,34 +229,43 @@ list<ResArch *> BFS(){
   while(t->getParent() == NULL && !queue.empty()){ 
     Vertex *aux = queue.front();
     queue.pop_front();
-    
     for(ResArch *edge : aux->getArchs()){
       if(!edge->getDestinyVertex()->isVisited() && edge->getCapacity() == 1 && edge->getFlux() == 0 ){
-
+        //printf("%d\n", _g->getNode()->getId());
+        //printf("aqui");
         queue.push_back(edge->getDestinyVertex());
         edge->getDestinyVertex()->setVisited();
         edge->getDestinyVertex()->setParent(aux);
-        edge->getDestinyVertex()->setParentEdge(edge);  
+        edge->getDestinyVertex()->setParentEdge(edge);
+        //if(!queue.empty()) printf("hello");
+         
+      } 
+      if(edge->getDestinyVertex() == t) {
+        //printf("estupido");
+        break;
       }
-      
-      if(edge->getDestinyVertex() == t) break;
     }
-
-    if(!t->isVisited()) return path;  
-
-    //a partir do t vai fazer backtrack até até chegar ao s, que não tem pai
-    //e vai adicionar os arcos ao caminho
-    else{
-      Vertex *aux = t;
-      while(aux->getParent() != NULL){
-        path.push_front(aux->getParentEdge());
-        aux = aux->getParent();
-      }
-      return path;
-    }   
   }
-  return path;
+
+  if(!t->isVisited()) {
+    return path;  
+  }
+
+  //a partir do t vai fazer backtrack até até chegar ao s, que não tem pai
+  //e vai adicionar os arcos ao caminho
+  else{
+    Vertex *aux = t;
+    while(aux->getParent() != NULL){
+      path.push_front(aux->getParentEdge());
+      aux = aux->getParent();
+    }
+    return path;
+  }   
 }
+  /* if(t->getParent() != NULL)  printf("estupidez pegada");
+  if(queue.empty()) printf("não pode"); */
+/*   return path;
+} */
 
 
 int EdmondsKarp(){
@@ -266,6 +276,7 @@ int EdmondsKarp(){
     path = BFS();
     
     if(!path.empty()){
+      //puts("caminho\n");
       max_flow += 1;
       for(ResArch *edge : path){
         edge->addFlux();
@@ -305,7 +316,7 @@ void parseCommandLine(){
   errors(aven_num, street_num);
 
   _g = new Graph(aven_num, street_num);
-  puts("after cone");
+  //puts("after cone");
 
   int coordX = 0, coordY = 0;
   for(int i = 0; i < markets; i++){        //reads the location of supermarkets
@@ -326,9 +337,6 @@ void parseCommandLine(){
 
 int main(){
   parseCommandLine();
-
-
-
   printf("%d\n", EdmondsKarp());
   return 0;
 }
