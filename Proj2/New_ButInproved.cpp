@@ -21,8 +21,8 @@ Graph* _g;
 
 class ResArch{
 private:
-  int flux =0;
-  int capacity=1;
+  int flux = 0;
+  int capacity = 1;
   Vertex *originVertex;
   Vertex *destinyVertex;
 
@@ -34,7 +34,7 @@ public:
   
   Vertex *getOriginVertex() { return originVertex; }
   Vertex *getDestinyVertex() { return destinyVertex; }
-  void addFlux(){ flux=1; }
+  void addFlux(){ flux = 1; }
   void resetFlux() { flux = 0; }
   int getFlux() { return flux; }
 };
@@ -49,8 +49,6 @@ private:
   bool _visited;
   Vertex* _parent;
   ResArch *_parentEdge;
-  Vertex *_in;
-  Vertex *_out;
 
 public:
   Vertex(){
@@ -60,15 +58,15 @@ public:
   }
 
   int getId() { return _id; }
+
   Type getType() { return _type; }
+
   void setId(int id) { _id = id; }
+
   void setType(Type ntype) {
     if (_type==none)  _type = ntype;
     else  _type = both;
   }
-
-  Vertex* getVertexIn() {return _in;};
-  Vertex* getVertexOut() {return _out;}
 
   void setParentEdge(ResArch *edge){ _parentEdge = edge; }
   
@@ -79,14 +77,17 @@ public:
   void setParent(Vertex *v){
     _parent = v;
   }
+
   void setVisited(){ _visited = true; }
 
   bool isVisited() {return _visited;}
 
   void setFalse() { _visited=false; }
+
   void addArch(Vertex* destiny) {
     archs.push_back(new ResArch(this, destiny));
   }
+
   list<ResArch *> getArchs() { return archs; }
 
 };
@@ -109,22 +110,31 @@ public:
   }
 
   ~Graph() { delete _vertexes; }
+
   Vertex *getVertex(int id) { return &_vertexes[id]; }
+
   Vertex *getVertex(int x, int y) { return getVertex(x + (y - 1) * _avenues); }
+
   Vertex *getSource(){ return getVertex(SOURCE_ID);}
+
   Vertex *getDestiny(){ return getVertex(DESTINY_ID);}
+
   int getSize(){ return _numberVertexes; }
+
   void addConnections();
+
   void setOrigin_Destiny(){
     getVertex(SOURCE_ID)->setId(SOURCE_ID);
     getVertex(DESTINY_ID)->setId(DESTINY_ID);
   }
+
   void newMarket(int x, int y){
     Vertex* t = getVertex(DESTINY_ID);
     Vertex* aux = getVertex(x,y);
     aux->setType(supermarket);
     aux->addArch(t);
   }
+
   void newCitizen(int x, int y){
     Vertex* s = getVertex(SOURCE_ID);
     Vertex* aux = getVertex(x,y);
@@ -186,9 +196,7 @@ list<ResArch *> BFS(){
         aux = aux->getParent();
       }
       return path;
-    }
-
-    
+    }   
   }
   return path;
 }
@@ -202,7 +210,7 @@ int EdmondsKarp(){
     path = BFS();
     
     if(!path.empty()){
-      max_flow += 1;       
+      max_flow += 1;
       for(ResArch *edge : path)
         edge->addFlux();
     }
