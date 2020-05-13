@@ -253,9 +253,10 @@ int EdmondsKarp(){
       }
 
       while(!nextVertexes.empty()){
-        //Vertex *nextV = nextVertexes.front();
+        Vertex *nextV = nextVertexes.front();
         nextVertexes.pop_front();
         Vertex *aux = _g->getDestiny();
+        aux->setParent(nextV);
         while(aux->getParent() != NULL){
             ResEdge *edge = aux->getParentEdge();
             edge->addFlux();
