@@ -202,13 +202,14 @@ list<ResEdge *> BFS(){
         edge->getDestinyVertex()->setParentEdge(edge);         
       } 
       if(edge->getDestinyVertex() == t){
-        while(queue.empty()){
+        while(!queue.empty()){
           Vertex *temp = queue.front();
           queue.pop_front();
           for(ResEdge *edge : temp->getArchs()){
-            if (edge->getDestinyVertex() == t) nextVertexes.push_front(temp);
+            if (edge->getDestinyVertex() == t){
+              nextVertexes.push_back(temp);
           }
-        }
+        }}
 
         /* for (ResEdge *edge: queue.front()->getArchs())
           if (edge->getDestinyVertex() == t)
@@ -257,18 +258,20 @@ int EdmondsKarp(){
         nextVertexes.pop_front();
         Vertex *aux = _g->getDestiny();
         aux->setParent(nextV);
+        if(aux->getParentEdge()->getFlux() != 1){
         while(aux->getParent() != NULL){
-            ResEdge *edge = aux->getParentEdge();
-            edge->addFlux();
-            Vertex *orig = edge->getOriginVertex();
-            Vertex *dest = edge->getDestinyVertex();
-            for (ResEdge *aux : dest->getArchs())
-              if(aux->getDestinyVertex() == orig) 
-                aux->setCapacity(1);
-            aux = aux->getParent();
+          ResEdge *edge = aux->getParentEdge();
+          edge->addFlux();
+          Vertex *orig = edge->getOriginVertex();
+          Vertex *dest = edge->getDestinyVertex();
+          for (ResEdge *auxE : dest->getArchs())
+            if(auxE->getDestinyVertex() == orig) 
+              auxE->setCapacity(1);
+          aux = aux->getParent();
         }
+        max_flow += 1;
       }
-
+      }
       /* if (nextVertex!=NULL){
         Vertex *aux = _g->getDestiny();
         while(aux->getParent() != NULL){
