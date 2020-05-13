@@ -18,7 +18,8 @@ class ResEdge;
 
 /*  Global Variables  */
 Graph* _g;
-Vertex* nextVertex = NULL;
+//Vertex* nextVertex = NULL;
+list<Vertex *> nextVertexes;
 int numNodes=0;
 
 class ResEdge{
@@ -201,9 +202,17 @@ list<ResEdge *> BFS(){
         edge->getDestinyVertex()->setParentEdge(edge);         
       } 
       if(edge->getDestinyVertex() == t){
-        for (ResEdge *edge: queue.front()->getArchs())
+        while(queue.empty()){
+          Vertex *temp = queue.front();
+          queue.pop_front();
+          for(ResEdge *edge : temp->getArchs()){
+            if (edge->getDestinyVertex() == t) nextVertexes.push_front(temp);
+          }
+        }
+
+        /* for (ResEdge *edge: queue.front()->getArchs())
           if (edge->getDestinyVertex() == t)
-            nextVertex = queue.front();
+            nextVertex = queue.front(); */
         break;
       }
     }
@@ -242,7 +251,24 @@ int EdmondsKarp(){
         for (ResEdge *aux : dest->getArchs())
           if(aux->getDestinyVertex() == orig) aux->setCapacity(1);
       }
-      if (nextVertex!=NULL){
+
+      while(!nextVertexes.empty()){
+        //Vertex *nextV = nextVertexes.front();
+        nextVertexes.pop_front();
+        Vertex *aux = _g->getDestiny();
+        while(aux->getParent() != NULL){
+            ResEdge *edge = aux->getParentEdge();
+            edge->addFlux();
+            Vertex *orig = edge->getOriginVertex();
+            Vertex *dest = edge->getDestinyVertex();
+            for (ResEdge *aux : dest->getArchs())
+              if(aux->getDestinyVertex() == orig) 
+                aux->setCapacity(1);
+            aux = aux->getParent();
+        }
+      }
+
+      /* if (nextVertex!=NULL){
         Vertex *aux = _g->getDestiny();
         while(aux->getParent() != NULL){
             ResEdge *edge = aux->getParentEdge();
@@ -255,7 +281,7 @@ int EdmondsKarp(){
             aux = aux->getParent();
         }
         nextVertex = NULL;
-      }
+      } */
     }
     else break;
   }
