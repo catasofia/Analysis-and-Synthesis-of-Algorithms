@@ -205,8 +205,8 @@ list<ResEdge *> BFS(){
         while(!queue.empty()){
           Vertex *temp = queue.front();
           queue.pop_front();
-          for(ResEdge *edge : temp->getArchs()){
-            if (edge->getDestinyVertex() == t){
+          for(ResEdge *edge1 : temp->getArchs()){
+            if (edge1->getDestinyVertex() == t){
               nextVertexes.push_back(temp);
           }
         }}
@@ -237,6 +237,7 @@ list<ResEdge *> BFS(){
 
 
 int EdmondsKarp(){
+  bool canAdd = true;
   int max_flow = 0;
   list<ResEdge *>path;
   
@@ -258,20 +259,35 @@ int EdmondsKarp(){
         nextVertexes.pop_front();
         Vertex *aux = _g->getDestiny();
         aux->setParent(nextV);
-        if(aux->getParentEdge()->getFlux() != 1){
+        for(ResEdge * edgeAux : nextV->getArchs()){
+          if (edgeAux->getDestinyVertex() == aux) aux->setParentEdge(edgeAux);
+        }
+        
         while(aux->getParent() != NULL){
-          ResEdge *edge = aux->getParentEdge();
-          edge->addFlux();
-          Vertex *orig = edge->getOriginVertex();
-          Vertex *dest = edge->getDestinyVertex();
-          for (ResEdge *auxE : dest->getArchs())
-            if(auxE->getDestinyVertex() == orig) 
-              auxE->setCapacity(1);
+          if (aux->getParentEdge()->getFlux() == 1){
+            canAdd = false;
+            break;
+          }
           aux = aux->getParent();
         }
+
+        if(canAdd){
+          aux = _g->getDestiny();
+          while(aux->getParent() != NULL){
+            //printf("entrei\n");
+            ResEdge *edge = aux->getParentEdge();
+            edge->addFlux();
+            Vertex *orig = edge->getOriginVertex();
+            Vertex *dest = edge->getDestinyVertex();
+            for (ResEdge *auxE : dest->getArchs())
+              if(auxE->getDestinyVertex() == orig) 
+                auxE->setCapacity(1);
+            aux = aux->getParent();
+          }
         max_flow += 1;
-      }
-      }
+        }
+        canAdd = true;
+    }
       /* if (nextVertex!=NULL){
         Vertex *aux = _g->getDestiny();
         while(aux->getParent() != NULL){
