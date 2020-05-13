@@ -18,7 +18,6 @@ class ResEdge;
 
 /*  Global Variables  */
 Graph* _g;
-//Vertex* nextVertex = NULL;
 list<Vertex *> nextVertexes;
 int numNodes=0;
 
@@ -48,13 +47,15 @@ public:
 class Vertex{
 private:
   bool _visited;
+  int _id;
   Vertex* _parent; //For BFS
   ResEdge *_parentEdge; //For BFS
   list<ResEdge *> _archs;
 
 
 public:
-  Vertex(){
+  Vertex(int id){
+    _id = id;
     _parent = NULL;
     _visited = false;
   }
@@ -63,6 +64,7 @@ public:
   void setParentEdge(ResEdge *edge){ _parentEdge = edge; }
   void setFalse() { _visited=false; }
   void setVisited(){ _visited = true; }
+  int getId(){ return _id; }
   Vertex* getParent(){ return _parent; }
   ResEdge* getParentEdge(){ return _parentEdge;}
   list<ResEdge *> getArchs() { return _archs; }
@@ -83,8 +85,8 @@ private:
 public:
   Node(){
     _id = numNodes++ ;
-    Vin = new Vertex();
-    Vout = new Vertex();
+    Vin = new Vertex(_id);
+    Vout = new Vertex(_id);
     Vin->addArch(Vout, 1);
     Vout->setParent(Vin);
     edgeBetween = new ResEdge(Vin, Vout, 1);
@@ -134,8 +136,8 @@ public:
     _streets = streets;
     int _numberNodes = avenues * streets;
     
-    Source = new Vertex();
-    Destiny = new Vertex();
+    Source = new Vertex(-1);
+    Destiny = new Vertex(avenues * streets);
     
     _nodes = new Node[_numberNodes];
     addConnections();
@@ -179,9 +181,9 @@ list<ResEdge *> BFS(){
   list<ResEdge *> path;  //lista com o caminho mais curto;
   
   for(int i = 0; i < _g->getSize(); i++){
-     _g->getNode(i)->setNodeFalse(); 
-     _g->getNode(i)->setParent(NULL);
-     _g->getNode(i)->setParentEdge(NULL); 
+    _g->getNode(i)->setNodeFalse(); 
+    _g->getNode(i)->setParent(NULL);
+    _g->getNode(i)->setParentEdge(NULL); 
   }
 
   Vertex *s = _g->getSource();   
@@ -213,13 +215,11 @@ list<ResEdge *> BFS(){
           for(ResEdge *edge1 : temp->getArchs()){
             if (edge1->getDestinyVertex() == t){
               nextVertexes.push_back(temp);
+              //printf("AQUI: %d!", temp->getId());
+            }
+            
           }
-        }}
-
-        /* for (ResEdge *edge: queue.front()->getArchs())
-          if (edge->getDestinyVertex() == t)
-            nextVertex = queue.front(); */
-        break;
+        } 
       }
     }
   }
@@ -248,7 +248,8 @@ int EdmondsKarp(){
   
   while(true){
     path = BFS();
-    
+    /*for (ResEdge *x: path)
+      printf("%d->%d\n", x->getOriginVertex()->getId(), x->getDestinyVertex()->getId());*/
     if(!path.empty()){
       max_flow += 1;
       for(ResEdge *edge : path){
@@ -264,9 +265,8 @@ int EdmondsKarp(){
         nextVertexes.pop_front();
         Vertex *aux = _g->getDestiny();
         aux->setParent(nextV);
-        for(ResEdge * edgeAux : nextV->getArchs()){
+        for(ResEdge * edgeAux : nextV->getArchs())
           if (edgeAux->getDestinyVertex() == aux) aux->setParentEdge(edgeAux);
-        }
         
         while(aux->getParent() != NULL){
           if (aux->getParentEdge()->getFlux() == 1){
@@ -279,34 +279,20 @@ int EdmondsKarp(){
         if(canAdd){
           aux = _g->getDestiny();
           while(aux->getParent() != NULL){
-            //printf("entrei\n");
             ResEdge *edge = aux->getParentEdge();
             edge->addFlux();
             Vertex *orig = edge->getOriginVertex();
             Vertex *dest = edge->getDestinyVertex();
+            //printf("%d->%d\n", orig->getId(), dest->getId());
             for (ResEdge *auxE : dest->getArchs())
               if(auxE->getDestinyVertex() == orig) 
                 auxE->setCapacity(1);
             aux = aux->getParent();
           }
-        max_flow += 1;
+          max_flow += 1;
         }
         canAdd = true;
-    }
-      /* if (nextVertex!=NULL){
-        Vertex *aux = _g->getDestiny();
-        while(aux->getParent() != NULL){
-            ResEdge *edge = aux->getParentEdge();
-            edge->addFlux();
-            Vertex *orig = edge->getOriginVertex();
-            Vertex *dest = edge->getDestinyVertex();
-            for (ResEdge *aux : dest->getArchs())
-              if(aux->getDestinyVertex() == orig) 
-                aux->setCapacity(1);
-            aux = aux->getParent();
-        }
-        nextVertex = NULL;
-      } */
+      }
     }
     else break;
   }
