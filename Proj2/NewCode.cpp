@@ -72,6 +72,9 @@ public:
   void addArch(Vertex *destiny, int cap) {
     _archs.push_back(new ResEdge(this, destiny,cap));
   }
+  void addArch(ResEdge *destiny) {
+    _archs.push_back(destiny);
+  }
 };
 
 
@@ -87,13 +90,13 @@ public:
     _id = numNodes++ ;
     Vin = new Vertex(_id);
     Vout = new Vertex(_id);
-    Vin->addArch(Vout, 1);
     Vout->setParent(Vin);
     edgeBetween = new ResEdge(Vin, Vout, 1);
+    Vin->addArch(edgeBetween);
     Vout->setParentEdge(edgeBetween);
-    Vout->addArch(Vin, 0);
-    Vin->setParent(Vout);
     backEdge = new ResEdge(Vout, Vin, 0);
+    Vin->setParent(Vout);
+    Vout->addArch(backEdge);
     Vin->setParentEdge(backEdge);
   }
   
