@@ -79,6 +79,7 @@ private:
   Vertex* Vin;
   Vertex* Vout;
   ResEdge* edgeBetween;
+  ResEdge* backEdge;
 public:
   Node(){
     _id = numNodes++ ;
@@ -86,8 +87,12 @@ public:
     Vout = new Vertex();
     Vin->addArch(Vout, 1);
     Vout->setParent(Vin);
-    Vout->setParentEdge(edgeBetween);
     edgeBetween = new ResEdge(Vin, Vout, 1);
+    Vout->setParentEdge(edgeBetween);
+    Vout->addArch(Vin, 0);
+    Vin->setParent(Vout);
+    backEdge = new ResEdge(Vout, Vin, 0);
+    Vin->setParentEdge(backEdge);
   }
   
 
