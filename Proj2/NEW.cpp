@@ -180,7 +180,6 @@ list<Vertex *> BFS(){
     }
   }
   if(!sink->isVisited()){
-    puts("ENTREI");
     return nextVertexs;
   }
 
@@ -203,23 +202,39 @@ int Edmonds(){
   list <Vertex *> usedVertexes;
   Vertex *sink = _g->getSink();
   Vertex *temp = sink;
+  
   parents = BFS();
   while(!parents.empty()){
-  
-  //puts("deif");
-    Vertex *parent = parents.front();
-    parents.pop_front();
-    sink->setParent(parent);
-    for(ResEdge *aux : parent->getEdges())
-      if(aux->getDestinyVertex() == sink) sink->setParentEdge(aux);
-    
-    while(temp->getParent() != NULL){
-      path.push_front(temp->getParentEdge()); 
-      temp = temp->getParent();
-    }
-
     while(!parents.empty()){
+      Vertex *parent = parents.front();
+      parents.pop_front();
+      sink->setParent(parent);
+      for(ResEdge *aux : parent->getEdges())
+        if(aux->getDestinyVertex() == sink) sink->setParentEdge(aux);
+    
+      while(temp->getParent() != NULL){
+        path.push_front(temp->getParentEdge()); 
+        temp = temp->getParent();
+      }
+      puts("deif");
       if(usedVertexes.empty()){
+        adding = true;
+      }
+      else{
+        //puts("Onde bou?");
+        Vertex *aux = sink;
+        while(aux->getParent() != NULL){
+          for(Vertex *v : usedVertexes)
+            if (aux == v) {
+              adding = false;
+              path.clear();
+              //puts("limpou3");
+              break;
+            }
+          aux = aux->getParent();
+        }
+      }
+      if(adding){
         max_flow++;
         for(ResEdge *edge : path){
           edge->addFlow(); 
@@ -232,38 +247,7 @@ int Edmonds(){
               backEdge->setCapacity();
           }
         }
-        puts("limpou");
-        path.clear();  //SE DER TIME LIMIT
-      }
-      else{
-        puts("Onde bou?");
-        Vertex *aux = sink;
-        while(aux->getParent() != NULL){
-          for(Vertex *v : usedVertexes)
-            if (aux == v) {
-              adding = false;
-              path.clear();
-              puts("limpou3");
-              break;
-            }
-          aux = aux->getParent();
-        }
-        if(adding){
-          max_flow++;
-          for(ResEdge *edge : path){
-            edge->addFlow(); 
-            Vertex *orig = edge->getOriginVertex();
-            if(orig != _g->getSource())
-              usedVertexes.push_front(orig);
-            Vertex *dest = edge->getDestinyVertex();
-            for(ResEdge *backEdge : dest->getEdges()){
-              if (backEdge->getDestinyVertex() == orig)
-                backEdge->setCapacity();
-            }
-          }
-          puts("limpou2");
         path.clear();
-        }
       }
       adding = true;
     }
