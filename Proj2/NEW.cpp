@@ -83,10 +83,8 @@ class Node{
       Vin = new Vertex(_id);
       Vout = new Vertex(_id);
       edgeBetween_front = new ResEdge(Vin, Vout, 1);
-      Vout->setParent(Vin);
       Vin->addEdge(edgeBetween_front);
       edgeBetween_back = new ResEdge(Vout, Vin, 0);
-      Vin->setParent(Vout);
       Vout->addEdge(edgeBetween_back);
     }
     int getId() { return _id; }
@@ -98,6 +96,14 @@ class Node{
     void addEdge(Node *Destiny){
       Vout->addEdge(Destiny->getVin(), 1);
       Destiny->getVin()->addEdge(Vout, 0);
+    }
+    void reset(){
+      Vin->setVisited(false);
+      Vin->setParent(NULL);
+      Vin->setParentEdge(NULL);
+      Vout->setVisited(false);
+      Vout->setParent(NULL);
+      Vout->setParentEdge(NULL);
     }
     
 };
@@ -152,7 +158,18 @@ list<ResEdge *> BFS(){
   queue<Vertex *> vertexQueue;
   Vertex *source = _g->getSource();
   Vertex *sink = _g->getSink();
+
+
+  for(int i = 0; i < _g->getSize(); i++){
+    _g->getNode(i)->reset();
+  }
+
+  
+  sink->setVisited(false);
+  sink->setParent(NULL);
+  sink->setParentEdge(NULL);
   source->setVisited(true);
+  vertexQueue.push(source);
 
   while(!vertexQueue.empty() && sink->getParent() == NULL){
     Vertex *front = vertexQueue.front();
@@ -182,7 +199,6 @@ int Edmonds(){
   list <ResEdge *> path;
   path = BFS();
   while(!path.empty()){
-    puts("OLa");
     max_flow++;
     for(ResEdge *edge : path){
       edge->addFlow(); 
