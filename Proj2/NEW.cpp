@@ -14,7 +14,6 @@ class ResEdge;
 
 Graph *_g;
 int numNodes = 0;
-list<Vertex *> nextVertexs;
 
 class ResEdge{
   private:
@@ -151,19 +150,16 @@ class Graph{
     }
 };
 
-list<ResEdge *> BFS(){
-  /* visited false
-  parent vertex e parent edge a null */
+list<Vertex *> BFS(){
   list<ResEdge *> path;
+  list<Vertex *> nextVertexs;
   queue<Vertex *> vertexQueue;
   Vertex *source = _g->getSource();
   Vertex *sink = _g->getSink();
 
-
   for(int i = 0; i < _g->getSize(); i++){
     _g->getNode(i)->reset();
   }
-
   
   sink->setVisited(false);
   sink->setParent(NULL);
@@ -183,33 +179,95 @@ list<ResEdge *> BFS(){
       }
     }
   }
-  if(!sink->isVisited())
-    return path;
-
-  Vertex *temp = sink;
-  while(temp->getParent() != NULL){
-    path.push_front(temp->getParentEdge());  //Pode dar erro
-    temp = temp->getParent();
+  if(!sink->isVisited()){
+    puts("ENTREI");
+    return nextVertexs;
   }
-  return path;
+
+  nextVertexs.push_back(sink->getParent());
+  while(!vertexQueue.empty()){
+    Vertex *nextV = vertexQueue.front();
+    vertexQueue.pop();
+    for(ResEdge *aux : nextV->getEdges())
+      if (aux->getDestinyVertex() == sink)
+        nextVertexs.push_back(nextV);
+  }
+  return nextVertexs;
 }
 
 int Edmonds(){
+  bool adding = true;
   int max_flow = 0;
   list <ResEdge *> path;
-  path = BFS();
-  while(!path.empty()){
-    max_flow++;
-    for(ResEdge *edge : path){
-      edge->addFlow(); 
-      Vertex *orig = edge->getOriginVertex();
-      Vertex *dest = edge->getDestinyVertex();
-      for(ResEdge *backEdge : dest->getEdges()){
-        if (backEdge->getDestinyVertex() == orig)
-          backEdge->setCapacity();
-      }
+  list <Vertex *> parents;
+  list <Vertex *> usedVertexes;
+  Vertex *sink = _g->getSink();
+  Vertex *temp = sink;
+  parents = BFS();
+  while(!parents.empty()){
+  
+  //puts("deif");
+    Vertex *parent = parents.front();
+    parents.pop_front();
+    sink->setParent(parent);
+    for(ResEdge *aux : parent->getEdges())
+      if(aux->getDestinyVertex() == sink) sink->setParentEdge(aux);
+    
+    while(temp->getParent() != NULL){
+      path.push_front(temp->getParentEdge()); 
+      temp = temp->getParent();
     }
-    path = BFS();
+
+    while(!parents.empty()){
+      if(usedVertexes.empty()){
+        max_flow++;
+        for(ResEdge *edge : path){
+          edge->addFlow(); 
+          Vertex *orig = edge->getOriginVertex();
+          if(orig != _g->getSource())
+            usedVertexes.push_front(orig);
+          Vertex *dest = edge->getDestinyVertex();
+          for(ResEdge *backEdge : dest->getEdges()){
+            if (backEdge->getDestinyVertex() == orig)
+              backEdge->setCapacity();
+          }
+        }
+        puts("limpou");
+        path.clear();  //SE DER TIME LIMIT
+      }
+      else{
+        puts("Onde bou?");
+        Vertex *aux = sink;
+        while(aux->getParent() != NULL){
+          for(Vertex *v : usedVertexes)
+            if (aux == v) {
+              adding = false;
+              path.clear();
+              puts("limpou3");
+              break;
+            }
+          aux = aux->getParent();
+        }
+        if(adding){
+          max_flow++;
+          for(ResEdge *edge : path){
+            edge->addFlow(); 
+            Vertex *orig = edge->getOriginVertex();
+            if(orig != _g->getSource())
+              usedVertexes.push_front(orig);
+            Vertex *dest = edge->getDestinyVertex();
+            for(ResEdge *backEdge : dest->getEdges()){
+              if (backEdge->getDestinyVertex() == orig)
+                backEdge->setCapacity();
+            }
+          }
+          puts("limpou2");
+        path.clear();
+        }
+      }
+      adding = true;
+    }
+    parents = BFS();
   }
   return max_flow;
 }
