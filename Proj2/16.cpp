@@ -133,12 +133,12 @@ class Graph{
       for(int i = 0; i < getSize(); i++){
         if((i+1) % _avenues != 0)  //Right
           getNode(i)->addEdge(getNode(i + 1));
-        if(i % _avenues != 0)   //Left
-          getNode(i)->addEdge(getNode(i - 1));
         if(i + _avenues < getSize()) //Down
           getNode(i)->addEdge(getNode(i + _avenues));
         if(i - _avenues >= 0)  //Up
           getNode(i)->addEdge(getNode(i - _avenues));
+        if(i % _avenues != 0)   //Left
+          getNode(i)->addEdge(getNode(i - 1));
       }
     }
 
