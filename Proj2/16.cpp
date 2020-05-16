@@ -84,8 +84,8 @@ class Node{
       Vout = new Vertex(_id);
       edgeBetween_front = new ResEdge(Vin, Vout, 1);
       Vin->addEdge(edgeBetween_front);
-      edgeBetween_back = new ResEdge(Vout, Vin, 0);
-      Vout->addEdge(edgeBetween_back);
+      //edgeBetween_back = new ResEdge(Vout, Vin, 0);
+      //Vout->addEdge(edgeBetween_back);
     }
     int getId() { return _id; }
     void setId(int id) {_id=id;}
@@ -95,7 +95,10 @@ class Node{
     ResEdge *getEdgeBetween_back() { return edgeBetween_back; }
     void addEdge(Node *Destiny){
       Vout->addEdge(Destiny->getVin(), 1);
-      Destiny->getVin()->addEdge(Vout, 0);
+      //printf("%d->%d\n", Vout->getId(), Destiny->getVin()->getId());
+      //Destiny->getVout()->addEdge(Vin, 1);
+
+      //Destiny->getVin()->addEdge(Vout, 1);
     }
     void reset(){
       Vin->setVisited(false);
@@ -131,12 +134,12 @@ class Graph{
     int getSize() { return _avenues*_streets; }
     void addConnections(){
       for(int i = 0; i < getSize(); i++){
+        if(i - _avenues >= 0)  //Up
+          getNode(i)->addEdge(getNode(i - _avenues));
         if((i+1) % _avenues != 0)  //Right
           getNode(i)->addEdge(getNode(i + 1));
         if(i + _avenues < getSize()) //Down
           getNode(i)->addEdge(getNode(i + _avenues));
-        if(i - _avenues >= 0)  //Up
-          getNode(i)->addEdge(getNode(i - _avenues));
         if(i % _avenues != 0)   //Left
           getNode(i)->addEdge(getNode(i - 1));
       }
@@ -220,8 +223,11 @@ int EdmondsKarp(){
       edge->addFlow();
       Vertex *orig = edge->getOriginVertex();
       Vertex *dest = edge->getDestinyVertex();
-      for (ResEdge *aux : dest->getEdges())
-        if(aux->getDestinyVertex() == orig) aux->setCapacity();
+      for (ResEdge *aux : dest->getEdges()){
+        if(aux->getDestinyVertex() == orig){ 
+        aux->setCapacity();
+        printf("%d->%d\n", orig->getId(), dest->getId());   //NAO ENTRA AQUI
+        }}
     }
 
     while(!nextVertexes.empty()){
@@ -249,9 +255,10 @@ int EdmondsKarp(){
           Vertex *orig = edge->getOriginVertex();
           Vertex *dest = edge->getDestinyVertex();
           
-          for (ResEdge *auxE : dest->getEdges())
-            if(auxE->getDestinyVertex() == orig) 
-              auxE->setCapacity();
+          for (ResEdge *auxE : dest->getEdges()){
+            if(auxE->getDestinyVertex() == orig){ 
+              printf("%d->%d\n", orig->getId(), dest->getId()); //NAO ENTRA AQUI
+              auxE->setCapacity();}}
           aux = aux->getParent();
         }
       }
