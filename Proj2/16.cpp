@@ -84,8 +84,8 @@ class Node{
       Vout = new Vertex(_id);
       edgeBetween_front = new ResEdge(Vin, Vout, 1);
       Vin->addEdge(edgeBetween_front);
-      //edgeBetween_back = new ResEdge(Vout, Vin, 0);
-      //Vout->addEdge(edgeBetween_back);
+      edgeBetween_back = new ResEdge(Vout, Vin, 0);
+      Vout->addEdge(edgeBetween_back);
     }
     int getId() { return _id; }
     void setId(int id) {_id=id;}
@@ -95,10 +95,7 @@ class Node{
     ResEdge *getEdgeBetween_back() { return edgeBetween_back; }
     void addEdge(Node *Destiny){
       Vout->addEdge(Destiny->getVin(), 1);
-      //printf("%d->%d\n", Vout->getId(), Destiny->getVin()->getId());
-      //Destiny->getVout()->addEdge(Vin, 1);
-
-      //Destiny->getVin()->addEdge(Vout, 1);
+      Destiny->getVin()->addEdge(Vout, 0);
     }
     void reset(){
       Vin->setVisited(false);
@@ -134,14 +131,14 @@ class Graph{
     int getSize() { return _avenues*_streets; }
     void addConnections(){
       for(int i = 0; i < getSize(); i++){
-        if(i - _avenues >= 0)  //Up
-          getNode(i)->addEdge(getNode(i - _avenues));
         if((i+1) % _avenues != 0)  //Right
           getNode(i)->addEdge(getNode(i + 1));
-        if(i + _avenues < getSize()) //Down
-          getNode(i)->addEdge(getNode(i + _avenues));
         if(i % _avenues != 0)   //Left
           getNode(i)->addEdge(getNode(i - 1));
+        if(i + _avenues < getSize()) //Down
+          getNode(i)->addEdge(getNode(i + _avenues));
+        if(i - _avenues >= 0)  //Up
+          getNode(i)->addEdge(getNode(i - _avenues));
       }
     }
 
@@ -156,114 +153,108 @@ class Graph{
     }
 };
 
-list<ResEdge *> BFS(){
-  list<Vertex *> queue; //fila de vértices a percorrer;
-  list<ResEdge *> path;  //lista com o caminho mais curto;
-  
+list<Vertex *> BFS(){
+  list<ResEdge *> path;
+  list<Vertex *> nextVertexs;
+  queue<Vertex *> vertexQueue;
+  Vertex *source = _g->getSource();
+  Vertex *sink = _g->getSink();
+
   for(int i = 0; i < _g->getSize(); i++){
     _g->getNode(i)->reset();
   }
-
-  Vertex *s = _g->getSource();   
-  Vertex *t = _g->getSink();
-
-  t->setVisited(false);
-  t->setParent(NULL);
-  t->setParentEdge(NULL);
   
-  s->setVisited(true);
-  queue.push_back(s); 
+  sink->setVisited(false);
+  sink->setParent(NULL);
+  sink->setParentEdge(NULL);
+  
+  source->setVisited(true);
+  vertexQueue.push(source);
 
-  //enquanto o t não for descoberto e a lista não estiver vazia, vai percorrer 
-  //os vertices. Quando encontrar o t ou a lista acabar, para.
-  while(!queue.empty()){ 
-    Vertex *aux = queue.front();
-    queue.pop_front();
-    for(ResEdge *edge : aux->getEdges()){
-      if(!edge->getDestinyVertex()->isVisited() && edge->getCapacity() == 1 && edge->getFlow() == 0 ){
-        queue.push_back(edge->getDestinyVertex());
+  while(/* sink->getParent() == NULL &&  */!vertexQueue.empty()){
+    Vertex *front = vertexQueue.front();
+    vertexQueue.pop();
+    for(ResEdge *edge : front->getEdges()){
+      if(!edge->getDestinyVertex()->isVisited() && edge->getCapacity() == 1 && edge->getFlow() == 0){
+        vertexQueue.push(edge->getDestinyVertex());
         edge->getDestinyVertex()->setVisited(true);
-        edge->getDestinyVertex()->setParent(aux);
-        edge->getDestinyVertex()->setParentEdge(edge);         
-      } 
-      if(edge->getDestinyVertex() == t){
-        while(!queue.empty()){
-          Vertex *temp = queue.front();
-          queue.pop_front();
-          for(ResEdge *edge1 : temp->getEdges())
-            if (edge1->getDestinyVertex() == t)
-              nextVertexes.push_back(temp);
-        } 
+        edge->getDestinyVertex()->setParent(front);
+        edge->getDestinyVertex()->setParentEdge(edge);
       }
-    
-    }
+      if(edge->getDestinyVertex() == sink){
+        nextVertexs.push_back(sink->getParent());
+        while(!vertexQueue.empty()){
+          Vertex *nextV = vertexQueue.front();
+          vertexQueue.pop();
+          for(ResEdge *aux : nextV->getEdges())
+            if (aux->getDestinyVertex() == sink)
+              nextVertexs.push_back(nextV);
+        }
+        return nextVertexs;
+      }
+    }    
   }
-
-
-  //a partir do t vai fazer backtrack até até chegar ao s, que não tem pai
-  //e vai adicionar os arcos ao caminho
-  if(t->isVisited()){
-    Vertex *aux = t;
-    while(aux->getParent() != NULL){
-      path.push_front(aux->getParentEdge());
-      aux = aux->getParent();
-    }
-  }   
-  return path;
+  return nextVertexs;  
 }
 
-int EdmondsKarp(){
-  bool canAdd = true;
+int Edmonds(){
+  bool adding = true;
   int max_flow = 0;
-  list<ResEdge *>path = BFS();
-  
-  while(!path.empty()){
-    if (!path.empty()) max_flow++;
-    for(ResEdge *edge : path){
-      edge->addFlow();
-      Vertex *orig = edge->getOriginVertex();
-      Vertex *dest = edge->getDestinyVertex();
-      for (ResEdge *aux : dest->getEdges()){
-        if(aux->getDestinyVertex() == orig){ 
-        aux->setCapacity();
-        printf("%d->%d\n", orig->getId(), dest->getId());   //NAO ENTRA AQUI
-        }}
-    }
-
-    while(!nextVertexes.empty()){
-      canAdd = true;
-      Vertex *nextV = nextVertexes.front();
-      nextVertexes.pop_front();
-      Vertex *aux = _g->getSink();
-      aux->setParent(nextV);
-      for(ResEdge * edgeAux : nextV->getEdges())
-        if (edgeAux->getDestinyVertex() == aux) aux->setParentEdge(edgeAux);
+  list <ResEdge *> path;
+  list <Vertex *> parents;
+  list <Vertex *> usedVertexes;
+  Vertex *sink = _g->getSink();
+  parents = BFS();
+  while(!parents.empty()){
+    while(!parents.empty()){
+      Vertex *temp = sink;
+      Vertex *parent = parents.front();
+      parents.pop_front();
+      sink->setParent(parent);
+      for(ResEdge *aux : parent->getEdges())
+        if(aux->getDestinyVertex() == sink) sink->setParentEdge(aux);
       
-      while(aux->getParent() != NULL){
-        if (aux->getParentEdge()->getFlow() == 1){
-          canAdd = false;
-          break;
-        }
-        aux = aux->getParent();
+      while(temp->getParent() != NULL){
+        path.push_front(temp->getParentEdge()); 
+        temp = temp->getParent();
       }
-      if(canAdd){
-        max_flow++;
-        Vertex *aux = _g->getSink();
+
+      if(usedVertexes.empty()){
+        adding = true;
+      }
+      else{
+        Vertex *aux = sink;
         while(aux->getParent() != NULL){
-          ResEdge *edge = aux->getParentEdge();
-          edge->addFlow();
-          Vertex *orig = edge->getOriginVertex();
-          Vertex *dest = edge->getDestinyVertex();
-          
-          for (ResEdge *auxE : dest->getEdges()){
-            if(auxE->getDestinyVertex() == orig){ 
-              printf("%d->%d\n", orig->getId(), dest->getId()); //NAO ENTRA AQUI
-              auxE->setCapacity();}}
+          for(Vertex *v : usedVertexes){
+            if (aux == v) {
+              adding = false;
+              path.clear();
+              break;
+            }
+          }
+          if (!adding) break;
           aux = aux->getParent();
+          }
         }
+      if(adding){
+        max_flow++;
+        for(ResEdge *edge : path){
+          edge->addFlow(); 
+          Vertex *orig = edge->getOriginVertex();
+          if(orig != _g->getSource())
+            usedVertexes.push_front(orig);
+          Vertex *dest = edge->getDestinyVertex();
+          for(ResEdge *backEdge : dest->getEdges()){
+            if (backEdge->getDestinyVertex() == orig)
+              backEdge->setCapacity();
+          }
+        }
+      path.clear();
       }
+      adding = true;
     }
-  path = BFS();
+    usedVertexes.clear();
+    parents = BFS();
   }
   return max_flow;
 }
@@ -299,5 +290,5 @@ void parseCommandLine(){
 
 int main(){
   parseCommandLine();
-  printf("%d\n", EdmondsKarp());
+  printf("%d\n", Edmonds());
 }
