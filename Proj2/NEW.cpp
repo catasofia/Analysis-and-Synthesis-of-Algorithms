@@ -153,7 +153,7 @@ class Graph{
 list<Vertex *> BFS(){
   list<ResEdge *> path;
   list<Vertex *> nextVertexs;
-  queue<Vertex *> vertexQueue;
+  list<Vertex *> vertexQueue;
   Vertex *source = _g->getSource();
   Vertex *sink = _g->getSink();
 
@@ -166,14 +166,14 @@ list<Vertex *> BFS(){
   sink->setParentEdge(NULL);
   
   source->setVisited(true);
-  vertexQueue.push(source);
+  vertexQueue.push_back(source);
 
   while(/* sink->getParent() == NULL &&  */!vertexQueue.empty()){
     Vertex *front = vertexQueue.front();
-    vertexQueue.pop();
+    vertexQueue.pop_front();
     for(ResEdge *edge : front->getEdges()){
       if(!edge->getDestinyVertex()->isVisited() && edge->getCapacity() == 1 && edge->getFlow() == 0){
-        vertexQueue.push(edge->getDestinyVertex());
+        vertexQueue.push_back(edge->getDestinyVertex());
         edge->getDestinyVertex()->setVisited(true);
         edge->getDestinyVertex()->setParent(front);
         edge->getDestinyVertex()->setParentEdge(edge);
@@ -182,7 +182,7 @@ list<Vertex *> BFS(){
         nextVertexs.push_front(sink->getParent());
         while(!vertexQueue.empty()){
           Vertex *nextV = vertexQueue.front();
-          vertexQueue.pop();
+          vertexQueue.pop_front();
           for(ResEdge *aux : nextV->getEdges())
             if (aux->getDestinyVertex() == sink)
               nextVertexs.push_back(nextV);
@@ -190,6 +190,8 @@ list<Vertex *> BFS(){
         return nextVertexs;
       }
     }    
+      for(Vertex *v: vertexQueue) printf("%d\t", v->getId());
+      printf("\n");
   }
   return nextVertexs;  
 }
