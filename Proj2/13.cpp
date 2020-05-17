@@ -66,9 +66,12 @@ public:
   ResEdge* getParentEdge(){ return _parentEdge;}
   list<ResEdge *> getArchs() { return _archs; }
   bool isVisited() { return _visited; }
-  void addArch(Vertex *destiny, int cap) {
-    _archs.push_back(new ResEdge(this, destiny,cap));
-  }
+  void addArch(Vertex* destiny, int cap){
+      _archs.push_back(new ResEdge(this, destiny, cap));
+    }
+    void addArch(ResEdge* destiny){
+      _archs.push_back(destiny);
+    }
 };
 
 
@@ -77,16 +80,17 @@ private:
   int _id;
   Vertex* Vin;
   Vertex* Vout;
-  ResEdge* edgeBetween;
+  ResEdge* edgeBetween_front;
+  ResEdge* edgeBetween_back;
 public:
   Node(){
     _id = numNodes++ ;
     Vin = new Vertex();
     Vout = new Vertex();
-    Vin->addArch(Vout, 1);
-    Vout->setParent(Vin);
-    Vout->setParentEdge(edgeBetween);
-    edgeBetween = new ResEdge(Vin, Vout, 1);
+    edgeBetween_front = new ResEdge(Vin, Vout, 1);
+    Vin->addArch(edgeBetween_front);
+    edgeBetween_back = new ResEdge(Vout, Vin, 0);
+    Vout->addArch(edgeBetween_back);
   }
   
 
@@ -157,14 +161,14 @@ public:
 
 void Graph::addConnections(){
   for (int i = 0; i < getSize(); i++){
+    if (i + _avenues < getSize())
+      _nodes[i].addEdges(getNode(i + _avenues));
+    if ((i+1)%(_avenues)  != 0)
+      _nodes[i].addEdges(getNode(i + 1));
     if (i - _avenues > -1)
       _nodes[i].addEdges(getNode(i - _avenues));
     if (i%_avenues != 0)
       _nodes[i].addEdges(getNode(i - 1));
-    if ((i+1)%(_avenues)  != 0)
-      _nodes[i].addEdges(getNode(i + 1));
-    if (i + _avenues < getSize())
-      _nodes[i].addEdges(getNode(i + _avenues));
   }
 }
 
