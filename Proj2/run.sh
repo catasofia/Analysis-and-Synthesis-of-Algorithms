@@ -1,4 +1,4 @@
-make | grep !" ";
+#make | grep !" ";
 echo "Testing Venancio"
 #Venancio
 for i in outros\ testes/Venancio/tes*;do printf "Test: %s:$i " ; ./a.out<"$i"; done >out; 
