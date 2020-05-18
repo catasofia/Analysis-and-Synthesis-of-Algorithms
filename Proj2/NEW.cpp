@@ -18,7 +18,6 @@ int numNodes = 0;
 class ResEdge{
   private:
     int _capacity;
-    int _flow;
     Vertex *_origin;
     Vertex *_destiny;
 
@@ -27,14 +26,11 @@ class ResEdge{
       _origin = origin;
       _destiny = destiny;
       _capacity = capacity;
-      _flow = 0;
     }
     Vertex *getOriginVertex() { return _origin; }
     Vertex *getDestinyVertex() { return _destiny; }
-    int getFlow() { return _flow; }
     int getCapacity() { return _capacity; }
-    void addFlow() { _flow=1; }
-    void setCapacity() { _capacity = 1; }
+    void setCapacity(int cap) { _capacity = cap; }
 };
 
 class Vertex{
@@ -64,6 +60,7 @@ class Vertex{
     Vertex* getParent(){ return _parent; }
     ResEdge* getParentEdge(){ return _parentEdge; }
     list<ResEdge *> getEdges() { return _edges; }
+    void removeEdge(ResEdge *edge){ _edges.remove(edge); }
     void setVisited(bool change) { _visited = change; }
     void setParent(Vertex *pred) { _parent = pred; }
     void setParentEdge(ResEdge *edge) { _parentEdge = edge; }
@@ -172,32 +169,40 @@ list<Vertex *> BFS(){
     Vertex *front = vertexQueue.front();
     vertexQueue.pop_front();
     for(ResEdge *edge : front->getEdges()){
-      if(!edge->getDestinyVertex()->isVisited() && edge->getCapacity() == 1 && edge->getFlow() == 0){
+      if(edge->getCapacity() == 1 && !edge->getDestinyVertex()->isVisited()){
         vertexQueue.push_back(edge->getDestinyVertex());
         edge->getDestinyVertex()->setVisited(true);
         edge->getDestinyVertex()->setParent(front);
         edge->getDestinyVertex()->setParentEdge(edge);
+        //printf("Parent : %d, son: %d\n", front->getId(), edge->getDestinyVertex()->getId());
       }
       if(edge->getDestinyVertex() == sink){
         nextVertexs.push_front(sink->getParent());
         while(!vertexQueue.empty()){
           Vertex *nextV = vertexQueue.front();
           vertexQueue.pop_front();
+          //printf("AQUI: %d\n", nextV->getId());
           for(ResEdge *aux : nextV->getEdges())
-            if (aux->getDestinyVertex() == sink)
-              nextVertexs.push_back(nextV);
+            if (aux->getDestinyVertex() == sink){
+              //printf("FOdas: %d-%d\n", aux->getOriginVertex()->getId(), aux->getDestinyVertex()->getId());
+              nextVertexs.push_back(nextV);}
         }
+        //printf("saí\n");
+        //for(Vertex *v: nextVertexs) printf("%d\t", v->getId());
+        //printf("\n");
         return nextVertexs;
       }
     }    
-      for(Vertex *v: vertexQueue) printf("%d\t", v->getId());
-      printf("\n");
+    //for(Vertex *v: nextVertexs) printf("%d\t", v->getId());
+      //printf("\n"); 
   }
+  
   return nextVertexs;  
 }
 
 int Edmonds(){
   bool adding = true;
+  int i=0;
   int max_flow = 0;
   list <ResEdge *> path;
   list <Vertex *> parents;
@@ -208,7 +213,6 @@ int Edmonds(){
     while(!parents.empty()){
       Vertex *temp = sink;
       Vertex *parent = parents.front();
-      printf("%d\t", parent->getId());
       parents.pop_front();
       sink->setParent(parent);
       for(ResEdge *aux : parent->getEdges()){
@@ -228,16 +232,6 @@ int Edmonds(){
       }
 
       else{
-        //Vertex *aux = sink;
-        /* ResEdge *auxEdge = sink->getParentEdge();
-        while(auxEdge->getOriginVertex()->getParentEdge() != NULL){
-          if(auxEdge->getFlow() == 1){
-            adding = false;
-            path.clear();
-            break;
-          }
-          auxEdge = auxEdge->getOriginVertex()->getParentEdge();
-        } */
 
         Vertex *aux = sink;
         while(aux->getParent() != NULL){
@@ -254,26 +248,22 @@ int Edmonds(){
       } 
       if(adding){
         for(ResEdge *edge : path){
-          edge->addFlow(); 
           Vertex *orig = edge->getOriginVertex();
+          Vertex *dest = edge->getDestinyVertex();
           if(orig != _g->getSource())
             usedVertexes.push_back(orig);
-          Vertex *dest = edge->getDestinyVertex();
-          printf("CAMINHO - %d -> %d\n", orig->getId(), dest->getId());
-          for(ResEdge *backEdge : dest->getEdges()){
-            if (backEdge->getDestinyVertex() == orig)
-                backEdge->setCapacity();
-          }
+          for(ResEdge *backEdge : dest->getEdges())
+            if (backEdge->getDestinyVertex() == orig) {backEdge->setCapacity(1);
+          orig->removeEdge(edge);}
         }
         max_flow++;
-        path.clear();
       }
-      adding = true;
+      path.clear();
     }
-    printf("\n");
-    printf("FLOW: %d\n", max_flow);
     usedVertexes.clear();
     parents = BFS();
+    i++;
+    adding = true;
   }
   return max_flow;
 }

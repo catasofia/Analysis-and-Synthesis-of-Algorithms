@@ -19,7 +19,6 @@ list<Vertex *> nextVertexes;
 class ResEdge{
   private:
     int _capacity;
-    int _flow;
     Vertex *_origin;
     Vertex *_destiny;
 
@@ -28,14 +27,11 @@ class ResEdge{
       _origin = origin;
       _destiny = destiny;
       _capacity = capacity;
-      _flow = 0;
     }
     Vertex *getOriginVertex() { return _origin; }
     Vertex *getDestinyVertex() { return _destiny; }
-    int getFlow() { return _flow; }
     int getCapacity() { return _capacity; }
-    void addFlow() { _flow=1; }
-    void setCapacity() { _capacity = 1; }
+    void setCapacity(int capacity) { _capacity = capacity; }
 };
 
 class Vertex{
@@ -171,11 +167,12 @@ list<Vertex *> BFS(){
   source->setVisited(true);
   vertexQueue.push(source);
 
+
   while(/* sink->getParent() == NULL &&  */!vertexQueue.empty()){
     Vertex *front = vertexQueue.front();
     vertexQueue.pop();
     for(ResEdge *edge : front->getEdges()){
-      if(!edge->getDestinyVertex()->isVisited() && edge->getCapacity() == 1 && edge->getFlow() == 0){
+      if(!edge->getDestinyVertex()->isVisited() && edge->getCapacity() == 1){
         vertexQueue.push(edge->getDestinyVertex());
         edge->getDestinyVertex()->setVisited(true);
         edge->getDestinyVertex()->setParent(front);
@@ -194,6 +191,9 @@ list<Vertex *> BFS(){
       }
     }    
   }
+        for(Vertex *v: nextVertexes){
+          printf("%d\n", v->getId());
+        }
   return nextVertexs;  
 }
 
@@ -239,15 +239,20 @@ int Edmonds(){
       if(adding){
         max_flow++;
         for(ResEdge *edge : path){
-          edge->addFlow(); 
           Vertex *orig = edge->getOriginVertex();
           if(orig != _g->getSource())
             usedVertexes.push_front(orig);
           Vertex *dest = edge->getDestinyVertex();
           for(ResEdge *backEdge : dest->getEdges()){
             if (backEdge->getDestinyVertex() == orig)
-              backEdge->setCapacity();
+              if (backEdge->getCapacity()==0) 
+                backEdge->setCapacity(1);
           }
+          for(ResEdge *Edge : orig->getEdges()){
+            if (Edge->getDestinyVertex() == dest)
+              orig->getEdges().remove(Edge);
+          }
+          
         }
       path.clear();
       }
