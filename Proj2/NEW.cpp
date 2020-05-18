@@ -14,10 +14,12 @@ class ResEdge;
 
 Graph *_g;
 int numNodes = 0;
+list<Vertex *> nextVertexes;
 
 class ResEdge{
   private:
     int _capacity;
+    int _flow;
     Vertex *_origin;
     Vertex *_destiny;
 
@@ -26,11 +28,14 @@ class ResEdge{
       _origin = origin;
       _destiny = destiny;
       _capacity = capacity;
+      _flow = 0;
     }
     Vertex *getOriginVertex() { return _origin; }
     Vertex *getDestinyVertex() { return _destiny; }
+    int getFlow() { return _flow; }
     int getCapacity() { return _capacity; }
-    void setCapacity(int cap) { _capacity = cap; }
+    void addFlow() { _flow=1; }
+    void setCapacity() { _capacity = 1; }
 };
 
 class Vertex{
@@ -60,7 +65,6 @@ class Vertex{
     Vertex* getParent(){ return _parent; }
     ResEdge* getParentEdge(){ return _parentEdge; }
     list<ResEdge *> getEdges() { return _edges; }
-    void removeEdge(ResEdge *edge){ _edges.remove(edge); }
     void setVisited(bool change) { _visited = change; }
     void setParent(Vertex *pred) { _parent = pred; }
     void setParentEdge(ResEdge *edge) { _parentEdge = edge; }
@@ -97,6 +101,7 @@ class Node{
       Vin->setVisited(false);
       Vin->setParent(NULL);
       Vin->setParentEdge(NULL);
+
       Vout->setVisited(false);
       Vout->setParent(NULL);
       Vout->setParentEdge(NULL);
@@ -141,129 +146,122 @@ class Graph{
       Vertex *vout = getNode(x , y)->getVout();
       vout->addEdge(Sink, 1);
     }
+
     void newCitizen(int x, int y){
       Vertex *vin = getNode(x,y)->getVin();
-      Source->addEdge(vin, 1);
+      Source->addEdge(vin, 1); 
     }
 };
 
-list<Vertex *> BFS(){
-  list<ResEdge *> path;
-  list<Vertex *> nextVertexs;
-  list<Vertex *> vertexQueue;
-  Vertex *source = _g->getSource();
-  Vertex *sink = _g->getSink();
-
+list<ResEdge *> BFS(){
+  list<Vertex *> queue; //fila de vértices a percorrer;
+  list<ResEdge *> path;  //lista com o caminho mais curto;
+  
   for(int i = 0; i < _g->getSize(); i++){
     _g->getNode(i)->reset();
   }
-  
-  sink->setVisited(false);
-  sink->setParent(NULL);
-  sink->setParentEdge(NULL);
-  
-  source->setVisited(true);
-  vertexQueue.push_back(source);
 
-  while(/* sink->getParent() == NULL &&  */!vertexQueue.empty()){
-    Vertex *front = vertexQueue.front();
-    vertexQueue.pop_front();
-    for(ResEdge *edge : front->getEdges()){
-      if(edge->getCapacity() == 1 && !edge->getDestinyVertex()->isVisited()){
-        vertexQueue.push_back(edge->getDestinyVertex());
-        edge->getDestinyVertex()->setVisited(true);
-        edge->getDestinyVertex()->setParent(front);
-        edge->getDestinyVertex()->setParentEdge(edge);
-        //printf("Parent : %d, son: %d\n", front->getId(), edge->getDestinyVertex()->getId());
-      }
-      if(edge->getDestinyVertex() == sink){
-        nextVertexs.push_front(sink->getParent());
-        while(!vertexQueue.empty()){
-          Vertex *nextV = vertexQueue.front();
-          vertexQueue.pop_front();
-          //printf("AQUI: %d\n", nextV->getId());
-          for(ResEdge *aux : nextV->getEdges())
-            if (aux->getDestinyVertex() == sink){
-              //printf("FOdas: %d-%d\n", aux->getOriginVertex()->getId(), aux->getDestinyVertex()->getId());
-              nextVertexs.push_back(nextV);}
-        }
-        //printf("saí\n");
-        //for(Vertex *v: nextVertexs) printf("%d\t", v->getId());
-        //printf("\n");
-        return nextVertexs;
-      }
-    }    
-    //for(Vertex *v: nextVertexs) printf("%d\t", v->getId());
-      //printf("\n"); 
-  }
+  Vertex *s = _g->getSource();   
+  Vertex *t = _g->getSink();
+
+  t->setVisited(false);
+  t->setParent(NULL);
+  t->setParentEdge(NULL);
   
-  return nextVertexs;  
+  s->setVisited(true);
+  queue.push_back(s); 
+
+  //enquanto o t não for descoberto e a lista não estiver vazia, vai percorrer 
+  //os vertices. Quando encontrar o t ou a lista acabar, para.
+  while(!queue.empty()){ 
+    Vertex *aux = queue.front();
+    queue.pop_front();
+    for(ResEdge *edge : aux->getEdges()){
+      if(!edge->getDestinyVertex()->isVisited() && edge->getCapacity() == 1 && edge->getFlow() == 0 ){
+        queue.push_back(edge->getDestinyVertex());
+        edge->getDestinyVertex()->setVisited(true);
+        edge->getDestinyVertex()->setParent(aux);
+        edge->getDestinyVertex()->setParentEdge(edge);         
+      } 
+      if(edge->getDestinyVertex() == t){
+        while(!queue.empty()){
+          Vertex *temp = queue.front();
+          queue.pop_front();
+          for(ResEdge *edge1 : temp->getEdges()){
+            if (edge1->getDestinyVertex() == t){
+              nextVertexes.push_back(temp);
+              
+            }
+            
+          }
+        } 
+      }
+    }
+  }
+
+
+  //a partir do t vai fazer backtrack até até chegar ao s, que não tem pai
+  //e vai adicionar os arcos ao caminho
+  if(t->isVisited()){
+    Vertex *aux = t;
+    while(aux->getParent() != NULL){
+      path.push_front(aux->getParentEdge());
+      aux = aux->getParent();
+    }
+  }   
+  return path;
 }
 
-int Edmonds(){
-  bool adding = true;
-  int i=0;
+int EdmondsKarp(){
+  bool canAdd = true;
   int max_flow = 0;
-  list <ResEdge *> path;
-  list <Vertex *> parents;
-  list <Vertex *> usedVertexes;
-  Vertex *sink = _g->getSink();
-  parents = BFS();
-  while(!parents.empty()){
-    while(!parents.empty()){
-      Vertex *temp = sink;
-      Vertex *parent = parents.front();
-      parents.pop_front();
-      sink->setParent(parent);
-      for(ResEdge *aux : parent->getEdges()){
-        if(aux->getDestinyVertex() == sink){ 
-          sink->setParentEdge(aux);
+  list<ResEdge *>path;
+  
+  path = BFS();
+  while(!path.empty()){
+    max_flow++;
+    for(ResEdge *edge : path){
+      edge->addFlow();
+      Vertex *orig = edge->getOriginVertex();
+      Vertex *dest = edge->getDestinyVertex();
+      for (ResEdge *aux : dest->getEdges())
+        if(aux->getDestinyVertex() == orig) aux->setCapacity();
+    }
+
+    while(!nextVertexes.empty()){
+      canAdd = true;
+      Vertex *nextV = nextVertexes.front();
+      nextVertexes.pop_front();
+      Vertex *aux = _g->getSink();
+      aux->setParent(nextV);
+      for(ResEdge * edgeAux : nextV->getEdges())
+        if (edgeAux->getDestinyVertex() == aux) aux->setParentEdge(edgeAux);
+      
+      while(aux->getParent() != NULL){
+        if (aux->getParentEdge()->getFlow() == 1){
+          canAdd = false;
           break;
         }
+        aux = aux->getParent();
       }
 
-      while(temp->getParent() != NULL){
-        path.push_front(temp->getParentEdge()); 
-        temp = temp->getParent();
-      }
-
-      if(usedVertexes.empty()){
-        adding = true;
-      }
-
-      else{
-
-        Vertex *aux = sink;
+      if(canAdd){
+        aux = _g->getSink();
         while(aux->getParent() != NULL){
-          for(Vertex *v : usedVertexes){
-            if (aux == v) {
-              adding = false;
-              path.clear();
-              break;
-            }
-          }
-          if (!adding) break;
-          aux = aux->getParent();
-        } 
-      } 
-      if(adding){
-        for(ResEdge *edge : path){
+          ResEdge *edge = aux->getParentEdge();
+          edge->addFlow();
           Vertex *orig = edge->getOriginVertex();
           Vertex *dest = edge->getDestinyVertex();
-          if(orig != _g->getSource())
-            usedVertexes.push_back(orig);
-          for(ResEdge *backEdge : dest->getEdges())
-            if (backEdge->getDestinyVertex() == orig) {backEdge->setCapacity(1);
-          orig->removeEdge(edge);}
+          
+          for (ResEdge *auxE : dest->getEdges())
+            if(auxE->getDestinyVertex() == orig) 
+              auxE->setCapacity();
+          aux = aux->getParent();
         }
-        max_flow++;
+        max_flow += 1;
       }
-      path.clear();
     }
-    usedVertexes.clear();
-    parents = BFS();
-    i++;
-    adding = true;
+  path = BFS();
   }
   return max_flow;
 }
@@ -281,8 +279,6 @@ void parseCommandLine(){
     
   _g = new Graph(aven_num, street_num);
 
-
-
   int coordX = 0, coordY = 0;
   for(int i = 0; i < markets; i++){        //reads the location of supermarkets
 		if(scanf("%d %d", &coordX, &coordY) != 2);
@@ -297,5 +293,5 @@ void parseCommandLine(){
 
 int main(){
   parseCommandLine();
-  printf("%d\n", Edmonds());
+  printf("%d\n", EdmondsKarp());
 }
