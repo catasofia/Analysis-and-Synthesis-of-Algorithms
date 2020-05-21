@@ -1,10 +1,13 @@
+/*Grupo tp003
+Catarina Sousa N 93695
+Nelson Trindade N 93743*/
+
 #include <stdio.h>
 #include <stdlib.h>
 #include <list>
 #include <queue>
 
 using namespace std;
-#define NIL -1
 
 /*  Pre-load Class's*/
 class Vertex;
@@ -43,7 +46,7 @@ class Vertex{
     int _id;
     bool _visited;
     Vertex *_parent;
-    ResEdge *_parentEdge;
+    ResEdge *_parentEdge;    //edge that connects to the predecessor
     list<ResEdge *> _edges;
     
   public:
@@ -51,8 +54,7 @@ class Vertex{
       _visited = false;
       _parent = NULL;
       _parentEdge = NULL;
-      _id = id;
-      
+      _id = id;    
     }
     void addEdge(Vertex* destiny, int cap){
       _edges.push_back(new ResEdge(this, destiny, cap));
@@ -154,8 +156,8 @@ class Graph{
 };
 
 list<ResEdge *> BFS(){
-  list<Vertex *> queue; //fila de vértices a percorrer;
-  list<ResEdge *> path;  //lista com o caminho mais curto;
+  list<Vertex *> queue; 
+  list<ResEdge *> path;
   
   for(int i = 0; i < _g->getSize(); i++){
     _g->getNode(i)->reset();
@@ -171,37 +173,30 @@ list<ResEdge *> BFS(){
   s->setVisited(true);
   queue.push_back(s); 
 
-  //enquanto o t não for descoberto e a lista não estiver vazia, vai percorrer 
-  //os vertices. Quando encontrar o t ou a lista acabar, para.
+
   while(!queue.empty()){ 
+    //looks for the shortest path from the source to the sink
     Vertex *aux = queue.front();
     queue.pop_front();
     for(ResEdge *edge : aux->getEdges()){
       if(!edge->getDestinyVertex()->isVisited() && edge->getCapacity() == 1 && edge->getFlow() == 0 ){
-        queue.push_back(edge->getDestinyVertex());
         edge->getDestinyVertex()->setVisited(true);
         edge->getDestinyVertex()->setParent(aux);
         edge->getDestinyVertex()->setParentEdge(edge);         
+        queue.push_back(edge->getDestinyVertex());
       } 
       if(edge->getDestinyVertex() == t){
+        //looks for the vertexes that can be sink's predecessor and adds them to the list 
         while(!queue.empty()){
           Vertex *temp = queue.front();
           queue.pop_front();
-          for(ResEdge *edge1 : temp->getEdges()){
-            if (edge1->getDestinyVertex() == t){
+          for(ResEdge *edge1 : temp->getEdges())
+            if (edge1->getDestinyVertex() == t)
               nextVertexes.push_back(temp);
-              
-            }
-            
-          }
         } 
       }
     }
   }
-
-
-  //a partir do t vai fazer backtrack até até chegar ao s, que não tem pai
-  //e vai adicionar os arcos ao caminho
   if(t->isVisited()){
     Vertex *aux = t;
     while(aux->getParent() != NULL){
@@ -219,6 +214,7 @@ int EdmondsKarp(){
   
   path = BFS();
   while(!path.empty()){
+    //adds flow to the path and sets the residual edges capacity to 1
     max_flow++;
     for(ResEdge *edge : path){
       edge->addFlow();
@@ -228,6 +224,7 @@ int EdmondsKarp(){
         if(aux->getDestinyVertex() == orig) aux->setCapacity();
     }
 
+    //checks the other possible paths with the same size
     while(!nextVertexes.empty()){
       canAdd = true;
       Vertex *nextV = nextVertexes.front();
@@ -245,6 +242,7 @@ int EdmondsKarp(){
         aux = aux->getParent();
       }
 
+      //if possible, adds flow and sets the residual edges capacity to 1
       if(canAdd){
         aux = _g->getSink();
         while(aux->getParent() != NULL){
