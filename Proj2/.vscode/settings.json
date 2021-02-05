@@ -1,6 +1,0 @@
-{
-  "files.associations": {
-    "*.asm": "muchassemblyrequired",
-    "list": "cpp"
-  }
-}

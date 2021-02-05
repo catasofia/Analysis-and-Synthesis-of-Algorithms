@@ -1,9 +1,0 @@
-{
-    "files.associations": {
-        "*.asm": "muchassemblyrequired",
-        "iostream": "cpp",
-        "array": "cpp",
-        "string_view": "cpp",
-        "list": "cpp"
-    }
-}
