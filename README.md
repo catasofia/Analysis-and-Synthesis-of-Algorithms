@@ -11,5 +11,5 @@ Analysis and Synthesis of Algorithms 2019/2020
 | Part                              | Grade (out of 20) |
 | --------------------------------- | ----------------- |
 | Project1 - [Code](Proj1/Project1.cpp); [Report](Proj1/docs/Relatório-tp003.pdf)    | 20.0              |
-| Project2 - [Code](https://github.com/catasofia/Analysis-and-Synthesis-of-Algorithms/blob/master/Proj2/otherVersions/New_ButInproved.cpp); [Report](Proj2/docs/RelatorioTP003.pdf)    | 18.8              |
+| Project2 - [Code](Proj2/otherVersions/New_ButInproved.cpp); [Report](Proj2/docs/RelatorioTP003.pdf)    | 18.8              |
 
